@@ -1,8 +1,8 @@
 from django.urls import path
 from rest_framework_simplejwt.views import (TokenRefreshView,)
 from .views import (
-        GithubOauthSignInView,
-        GoogleOauthSignInview,
+        # GithubOauthSignInView,
+        # GoogleOauthSignInview,
         LoginUserView,
         LogoutApiView,
         PasswordResetConfirm,
@@ -23,7 +23,7 @@ urlpatterns = [
     path('profile/', ProfileDetail.as_view(), name='profile-detail'),
     path('logout/', LogoutApiView.as_view(), name='logout'),
 #social media authication 
-    path('google/', GoogleOauthSignInview.as_view(), name='google'),
-    path('github/', GithubOauthSignInView.as_view(), name='github')
+    # path('google/', GoogleOauthSignInview.as_view(), name='google'),
+    # path('github/', GithubOauthSignInView.as_view(), name='github')
 
 ]

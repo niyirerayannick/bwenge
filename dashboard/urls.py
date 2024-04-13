@@ -16,7 +16,7 @@ from .views import (
 urlpatterns = [
 
    
-    path('all', dashboard, name='dashboard'),
+    path('', dashboard, name='dashboard'),
     path('add-video/', addVideo, name='add-video'),
     path('video_list/', video_list, name='video_list'),
     path('videos/<int:video_id>/', video_detail, name='video_detail'),
@@ -44,7 +44,7 @@ urlpatterns = [
     # path('dashboard/user/<int:user_id>/', delete_user, name='delete_user'),
     # path('dashboard/edit_user/<int:user_id>/', edit_user, name='edit_user'),
 
-    path('', adminlogin, name='adminlogin'),
+    path('login', adminlogin, name='adminlogin'),
     path('forget-password', forgot_password , name='forget-password'),
 
      

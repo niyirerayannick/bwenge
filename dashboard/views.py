@@ -10,8 +10,8 @@ from django.contrib.auth.decorators import login_required
 # @login_required
 def dashboard(request):
     
-    if not request.user.is_authenticated or not request.user.is_superuser:
-        return redirect('adminlogin')
+    # if not request.user.is_authenticated or not request.user.is_superuser:
+    #     return redirect('adminlogin')
     
     users = User.objects.all()
     videos = Video.objects.all()
