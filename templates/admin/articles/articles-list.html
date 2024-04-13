@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Article list</h4>
+                <h6>View/Search Article</h6>
+            </div>
+            <div class="page-btn">
+                <a href="{% url 'add-article' %}" class="btn btn-added">
+                    <img src="{% static '/img/icons/plus.svg' %}" class="me-1" alt="img">Add Article
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-top">
+                    <div class="search-set">
+                        <div class="search-path">
+                            <a class="btn btn-filter" id="filter_search">
+                                <img src="{% static '/img/icons/filter.svg' %}" alt="img">
+                                <span><img src="{% static '/img/icons/closes.svg' %}" alt="img"></span>
+                            </a>
+                        </div>
+                        <div class="search-input">
+                            <a class="btn btn-searchset"><img src="{% static '/img/icons/search-white.svg' %}" alt="img"></a>
+                        </div>
+                    </div>
+                    <div class="wordset">
+                        <ul>
+                            <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img src="{% static '/img/icons/pdf.svg' %}" alt="img"></a></li>
+                            <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img src="{% static '/img/icons/excel.svg' %}" alt="img"></a></li>
+                            <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="print"><img src="{% static '/img/icons/printer.svg' %}" alt="img"></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table  datanew">
+                        <thead>
+                            <tr>
+                                <th>Article id</th>
+                                <th>Article Title</th>
+                                <th>Article Category</th>
+                                <th>Uploaded by</th>
+                                <th>Likes</th>
+                                <th>Views</th>
+
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for article in articles %}
+                                <tr>
+                                    <td>{{ article.id }}</td>
+                                    <td>{{ article.title }}</td>
+                                    <td> {% for category in video.categories.all %}
+                                        {{ category.name }}
+                                        {% if not forloop.last %}, {% endif %}
+                                    {% endfor %}</td>
+                                    <td>{{ article.author }}</td>
+                                    <td>{{ article.likes }}</td>
+                                    <td>{{ article.views }}</td>
+                                    <td>
+                                        <a class="me-3" href="#">
+                                            <img src="{% static '/img/icons/eye.svg' %}" alt="View">
+                                        </a>
+                                        <a class="me-3" href="#">
+                                            <img src="{% static '/img/icons/edit.svg' %}" alt="Edit">
+                                        </a>
+                                        <a class="confirm-text" href="#">
+                                            <img src="{% static '/img/icons/delete.svg' %}" alt="Delete">
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

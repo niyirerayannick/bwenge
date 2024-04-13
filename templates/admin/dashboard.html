@@ -1,0 +1,230 @@
+
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="page-wrapper">
+    <div class="content">
+    <div class="row">
+   
+        <div class="row">
+            <div class="col-lg-3 col-sm-6 col-12 d-flex">
+                <div class="dash-count">
+                    <div class="dash-counts">
+                        <h4>{{ total_videos }}</h4>
+                        <h5>Total Video</h5>
+                    </div>
+                    <div class="dash-imgs">
+                        <i data-feather="user"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 col-12 d-flex">
+                <div class="dash-count das1">
+                    <div class="dash-counts">
+                        <h4>{{ total_users }}</h4>
+                        <h5>Total Users</h5>
+                    </div>
+                    <div class="dash-imgs">
+                        <i data-feather="user-check"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 col-12 d-flex">
+                <div class="dash-count das2">
+                    <div class="dash-counts">
+                        <h4>{{ total_articles }}</h4>
+                        <h5>Total Article</h5>
+                    </div>
+                    <div class="dash-imgs">
+                        <i data-feather="file-text"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 col-12 d-flex">
+                <div class="dash-count das3">
+                    <div class="dash-counts">
+                        <h4>105</h4>
+                        <h5>BWENGE SPOC</h5>
+                    </div>
+                    <div class="dash-imgs">
+                        <i data-feather="file"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-3 col-sm-6 col-12 d-flex">
+                <div class="dash-count">
+                    <div class="dash-counts">
+                        <h4>100</h4>
+                        <h5>Total Communities</h5>
+                    </div>
+                    <div class="dash-imgs">
+                        <i data-feather="user"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 col-12 d-flex">
+                <div class="dash-count das1">
+                    <div class="dash-counts">
+                        <h4>100</h4>
+                        <h5>Total Institution</h5>
+                    </div>
+                    <div class="dash-imgs">
+                        <i data-feather="user-check"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 col-12 d-flex">
+                <div class="dash-count das2">
+                    <div class="dash-counts">
+                        <h4>100</h4>
+                        <h5>Total Projects</h5>
+                    </div>
+                    <div class="dash-imgs">
+                        <i data-feather="file-text"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 col-12 d-flex">
+                <div class="dash-count das3">
+                    <div class="dash-counts">
+                        <h4>105</h4>
+                        <h5>Bwenge MOOC</h5>
+                    </div>
+                    <div class="dash-imgs">
+                        <i data-feather="file"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-0">
+            <div class="card-body">
+                <h4 class="card-title">Video List</h4>
+                <div class="table-responsive dataview">
+                    <table class="table datatable">
+                        <thead>
+                            <tr>
+                                <th>Video Code</th>
+                                <th>Video Name</th>
+                                <th>Category Name</th>
+                                <th>Uploaded Date</th>
+                                <th>Uploaded By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><a href="javascript:void(0);">1</a></td>
+                                <td>Study Rwanda</td>
+                                <td>Technology</td>
+                                <td>12-12-2022</td>
+                                <td>Yannick</td>
+                            </tr>
+                            <tr>
+                                <td><a href="javascript:void(0);">2</a></td>
+                                <td>Study Rwanda</td>
+                                <td>Technology</td>
+                                <td>12-12-2022</td>
+                                <td>Yannick</td>
+                            </tr>
+                            <tr>
+                                <td><a href="javascript:void(0);">3</a></td>
+                                <td>Study Rwanda</td>
+                                <td>Technology</td>
+                                <td>12-12-2022</td>
+                                <td>Yannick</td>
+                            </tr>
+                            <!-- Add other product entries similarly -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-7 col-sm-12 col-12 d-flex">
+                <div class="card flex-fill">
+                    <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Recently Added Articles</h4>
+                        <div class="dropdown">
+                            <a href="javascript:void(0);" data-bs-toggle="dropdown" aria-expanded="false" class="dropset">
+                                <i class="fa fa-ellipsis-v"></i>
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <li><a href="productlist.html" class="dropdown-item">Article List</a></li>
+                                <li><a href="addproduct.html" class="dropdown-item">Article Add</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive dataview">
+                            <table class="table datatable">
+                                <thead>
+                                    <tr>
+                                        <th>Sno</th>
+                                        <th>Article</th>
+                                        <th>author</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td class="productimgname">
+                                            <a href="productlist.html" class="product-img">
+                                                <img src="assets/img/product/product22.jpg" alt="product">
+                                            </a>
+                                            <a href="productlist.html">How to make maoney online</a>
+                                        </td>
+                                        <td>Mugisha Yannick</td>
+                                    </tr>
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5 col-sm-12 col-12 d-flex">
+                <div class="card flex-fill">
+                    <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Recently Added Course</h4>
+                        <div class="dropdown">
+                            <a href="javascript:void(0);" data-bs-toggle="dropdown" aria-expanded="false" class="dropset">
+                                <i class="fa fa-ellipsis-v"></i>
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <li><a href="productlist.html" class="dropdown-item">Courses List</a></li>
+                                <li><a href="addproduct.html" class="dropdown-item">Course Add</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive dataview">
+                            <table class="table datatable">
+                                <thead>
+                                    <tr>
+                                        <th>Sno</th>
+                                        <th>Course</th>
+                                        <th>Instructor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>English</td>
+                                        <td>$891.2</td>
+                                    </tr>  
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BWENGE DASH</title>
+
+<link rel="shortcut icon" type="image/x-icon" href="{% static '/img/favicon.jpg' }">
+
+<link rel="stylesheet" href="{% static '/css/bootstrap.min.css' %}">
+
+<link rel="stylesheet" href="{% static '/css/animate.css' %}">
+
+<link rel="stylesheet" href="{% static '/css/dataTables.bootstrap4.min.css' %}">
+
+<link rel="stylesheet" href="{% static '/plugins/fontawesome/css/fontawesome.min.css' %}">
+<link rel="stylesheet" href="{% static '/plugins/fontawesome/css/all.min.css' %}">
+
+<link rel="stylesheet" href="{% static '/css/style.css' %}">
+</head>
+<body>
+
+    {% block content %}
+    
+    
+    
+    
+    {% endblock %}
+    <script>
+        function validateForm() {
+            var productName = document.getElementById('productName').value;
+            if (productName.trim() === '') {
+                alert('Product Name cannot be empty');
+                return false;
+            }
+            // Add more validation logic here
+            return true; // Form submission allowed
+        }
+ </script>
+    
+<script src="{% static '/js/jquery-3.6.0.min.js' %}"></script>
+
+<script src="{% static '/js/feather.min.js' %}"></script>
+
+<script src="{% static '/js/jquery.slimscroll.min.js' %}"></script>
+
+<script src="{% static '/js/jquery.dataTables.min.js' %}"></script>
+
+<script src="{% static '/js/dataTables.bootstrap4.min.js' %}"></script>
+
+<script src="{% static '/js/bootstrap.bundle.min.js' %}"></script>
+
+<script src="{% static '/plugins/apexchart/apexcharts.min.js' %}"></script>
+<script src="{% static '/plugins/apexchart/chart-data.js' %}"></script>
+
+<script src="{% static '/js/script.js' %}"></script>
+</body>
+</html>
