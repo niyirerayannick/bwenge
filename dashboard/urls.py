@@ -16,7 +16,7 @@ from .views import (
 urlpatterns = [
 
    
-    path('', dashboard, name='dashboard'),
+    path('all', dashboard, name='dashboard'),
     path('add-video/', addVideo, name='add-video'),
     path('video_list/', video_list, name='video_list'),
     path('videos/<int:video_id>/', video_detail, name='video_detail'),
