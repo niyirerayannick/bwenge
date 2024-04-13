@@ -16,7 +16,7 @@ from pathlib import Path
 
 env = environ.Env(
     
-    DEBUG=(bool, False)
+    DEBUG=(bool, True)
 )
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -156,7 +156,7 @@ OOGLE_CLIENT_ID=env("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET=env("GOOGLE_CLIENT_SECRET")
 GITHUB_SECRET=env("GITHUB_SECRET")
 GITHUB_CLIENT_ID=env("GITHUB_CLIENT_ID")
-SOCIAL_AUTH_PASSWORD="jgk348030gjw03"
+SOCIAL_AUTH_PASSWORD=env('SOCIAL_AUTH_PASSWORD')
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
