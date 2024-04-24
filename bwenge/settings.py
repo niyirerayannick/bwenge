@@ -37,6 +37,7 @@ ALLOWED_HOSTS = ['admin.bwenge.com','localhost','127.0.0.1','bwenge.com']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -117,7 +118,6 @@ AUTH_USER_MODEL="accounts.User"
 
 APPEND_SLASH = False
 
-
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
@@ -173,3 +173,13 @@ EMAIL_HOST_PASSWORD = '56d5f948f93624'
 DEFAULT_FROM_EMAIL='niyannick120@gmail.com'
 EMAIL_PORT = '2525'
 EMAIL_USE_TLS=True
+
+JAZZMIN_SETTINGS = {
+    "site_title": "BWENGE ADMIN",
+    "site_header": "BWENGE",
+    "site_brand": "BWENGE",
+    "site_logo": "/image/logo1.png",
+    "login_logo": None,
+    "copyright": "BWENGE R.L Ltd",
+
+    }
