@@ -19,7 +19,7 @@ from django.conf.urls.static import static
 from bwenge import settings
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('', admin.site.urls),
     path("api/auth/", include("accounts.urls")),
     path("api/", include("core.urls")),
 
