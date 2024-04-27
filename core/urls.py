@@ -83,4 +83,3 @@ urlpatterns = [
 #     path('quiz/<int:quiz_id>/', QuizAPIView.as_view(), name='quiz-detail'),
 #     path('question/<int:question_id>/', QuestionAPIView.as_view(), name='question-detail'),
 ]
-
