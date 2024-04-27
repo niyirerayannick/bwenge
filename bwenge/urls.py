@@ -23,12 +23,12 @@ from rest_framework import permissions
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="API Documentation",
+        title="Bwenge API Documentation",
         default_version='v1',
-        description="API Documentation using drf-yasg",
+        description="API Documentation using Swagger",
         terms_of_service="https://www.bwenge.com/terms/",
         contact=openapi.Contact(email="contact@bwenge.com"),
-        license=openapi.License(name="BSD License"),
+        license=openapi.License(name="Bwenge License"),
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
