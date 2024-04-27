@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Video Details</h4>
+                <h6>Full details of a video</h6>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-sm-12">
+                <h5>Video Title:{{ video.title }}</h5>
+            </div>
+            
+            <div class="col-lg-6 col-sm-12">
+                <h5>Video Categories:{{ video.categories }}</h5>
+        
+            </div>
+            <div class="col-lg-6 col-sm-12">
+                <h5>Video Description:{{ video.description }}</h5>
+                
+            </div>
+            <div class="col-lg-6 col-sm-12">
+                <h5>Video Author:{{ video.author }}</h5>
+                
+            </div>
+            <div class="col-lg-6 col-sm-12">
+                <h5>Video Likes:{{ video.likes }}</h5>
+   
+            </div>
+            <div class="col-lg-6 col-sm-12">
+                <h5>Video Views:{{ video.views }}</h5>
+   
+            </div>
+
+        </div>
+        
+        </div>
+        <div class="col-12">
+            <a href="javascript:void(0);" class="btn btn-submit me-2">Delete</a>
+            <a href="javascript:void(0);" class="btn btn-cancel">Edit</a>
+        </div>
+    </div>
+    
+</div>
+    
+
+{% endblock %}

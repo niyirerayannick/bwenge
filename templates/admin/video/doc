@@ -1,0 +1,48 @@
+
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="card-body">
+    <div class="table-responsive">
+        <table class="table custom-table">
+            <thead class="thead-light">
+                <tr>									
+                    <th>Video Id</th>
+                    <th>Title</th>
+                    <th>Total views</th>
+                    <th>Upload_date</th>
+                    <th>Video Category</th>
+                    <th>Uploaded by</th>
+
+                    <th class="text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for video  in videos %}
+                <tr>
+                    <td>{{ video.id }}</td>
+                    <td>{{ video.title }}</td>
+                    <td>{{ video.views}}</td>
+                    <td>{{ video.date }}</td>
+                    <td>{{ video.categories}}</td>
+                    <td>{{ video.author}}</td>
+                    
+                    <td class="text-right">
+                        <a href="#" class="btn btn-primary btn-sm mb-1">
+                            <i class="far fa-edit">Edit</i>
+                        </a>
+                        <a href="#"> 
+                          <button type="submit" data-toggle="modal" data-target="#delete_employee" class="btn btn-danger btn-sm mb-1">
+                            <i class="far fa-trash-alt"></i>
+                           </button>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                <!-- Repeat this structure for other student entries -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

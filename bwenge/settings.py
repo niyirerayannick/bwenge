@@ -162,18 +162,19 @@ SOCIAL_AUTH_PASSWORD=env('SOCIAL_AUTH_PASSWORD')
 
 # Directory where Django will look for additional static files, aside from each app's 'static' directory
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'assets'),  # It's a good practice to keep this different from STATIC_ROOT
+    os.path.join(BASE_DIR, 'static'),  # Change this to a different folder from STATIC_ROOT
 )
 
 # URL to use when referring to static files located in STATIC_ROOT
 STATIC_URL = '/static/'
 
 # Directory where the static files will be collected to
-STATIC_ROOT = '/var/www/bwenge/static/'
+# STATIC_ROOT = '/var/www/bwenge/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Good for production
 
 # Media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'  # Don't forget to also set MEDIA_URL
+MEDIA_URL = '/media/'  # Make sure to also set MEDIA_URL
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

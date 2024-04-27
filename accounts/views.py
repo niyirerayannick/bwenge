@@ -1,10 +1,12 @@
 from rest_framework import generics
 from multiprocessing import context
 from django.forms import ValidationError
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from rest_framework.generics import GenericAPIView
+from django.contrib import messages
 from rest_framework.response import Response
 from accounts.models import OneTimePassword
+from django.contrib.auth import authenticate, login
 from accounts.serializers import  (GithubLoginSerializer, GoogleSignInSerializer, LoginSerializer,
                                     LogoutUserSerializer, PasswordResetRequestSerializer,SetNewPasswordSerializer, 
                                     UserRegisterSerializer, VerifyUserEmailSerializer, ProfileSerializer)
@@ -123,7 +125,26 @@ class LogoutApiView(GenericAPIView):
  
 
 
+def adminlogin(request):
+    if request.user.is_authenticated:
+        # If user is already authenticated, redirect them to another page
+        return redirect('dashboard') 
+    
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, email=email, password=password)
+        
+        if user is not None and user.is_superuser:
+            login(request, user)
+            # Redirect to a success page, or wherever you want
+            return redirect('dashboard')
+        else:
+            # Display an error message if authentication fails
+            messages.error(request, 'Invalid email or password.')
+            return redirect('adminlogin')
 
+    return render(request, "admin/auth/login.html")
 
 
 # class GoogleOauthSignInview(GenericAPIView):
