@@ -35,7 +35,7 @@ class VideoSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     class Meta:
         model = Video
-        fields = ['id', 'title', 'video_file', 'description', 'likes', 'categories', 'views', 'author', 'date','comments']
+        fields = ['id', 'title', 'poster_image','video_file', 'description', 'likes', 'categories', 'views', 'author', 'date','comments']
 
     def create(self, validated_data):
         video_data = validated_data.pop('vides', None)
