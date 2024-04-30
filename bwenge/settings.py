@@ -180,12 +180,21 @@ MEDIA_URL = '/media/'  # Make sure to also set MEDIA_URL
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_HOST_USER = 'a7ec6b1ccc72cb'
-EMAIL_HOST_PASSWORD = '56d5f948f93624'
-DEFAULT_FROM_EMAIL='niyannick120@gmail.com'
-EMAIL_PORT = '2525'
-EMAIL_USE_TLS=True
+# EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+# EMAIL_HOST_USER = 'a7ec6b1ccc72cb'
+# EMAIL_HOST_PASSWORD = '56d5f948f93624'
+# DEFAULT_FROM_EMAIL='niyannick120@gmail.com'
+# EMAIL_PORT = '2525'
+# EMAIL_USE_TLS=True
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'byikorererw@gmail.com'
+EMAIL_HOST_PASSWORD = 'orsu rfjj cyuk cmdq' 
+#orsu rfjj cyuk cmdq # Use an App password if 2FA is enabled
+EMAIL_PORT = 587
+DEFAULT_FROM_EMAIL = 'byikorererw@gmail.com'
+
 
 JAZZMIN_SETTINGS = {
     "site_title": "BWENGE ADMIN",

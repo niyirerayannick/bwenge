@@ -27,7 +27,7 @@ class UserRolePermissions:
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True, verbose_name="Email Address")
-    # telephone = models.CharField(max_length=15, unique=True, verbose_name=_("Telephone"))
+    telephone = models.CharField(max_length=15, unique=True, verbose_name=_("Telephone"))
     first_name = models.CharField(max_length=100, verbose_name=_("First Name"))
     last_name = models.CharField(max_length=100, verbose_name=_("Last Name"))
     is_staff = models.BooleanField(default=False)
@@ -45,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=50, choices=USER_ROLE_CHOICES, default='user')
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["first_name", "last_name"]
+    REQUIRED_FIELDS = ["telephone","first_name", "last_name"]
 
     objects = UserManger()
     

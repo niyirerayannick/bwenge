@@ -31,28 +31,57 @@ class RegisterView(GenericAPIView):
             user_data=serializer.data
             send_generated_otp_to_email(user_data['email'], request)
             return Response({
-                'data':user_data,
-                'message':'thanks for signing up a passcode has be sent to verify your email'
+                "status": True,
+                "message": "Thanks for signing up! A passcode has been sent to verify your email.",
+                "data": {
+                    "user": {
+                        "id": user_data['id'],  # Ensure that your serializer includes the user id.
+                        'telephone': user_data['telephone'],
+                        "email": user_data['email']
+                    }
+                }
             }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Returning errors with a consistent structure.
+        return Response({
+            "status": False,
+            "message": "Failed to register.",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class VerifyUserEmail(GenericAPIView):
     serializer_class = VerifyUserEmailSerializer
+
     def post(self, request):
         try:
             passcode = request.data.get('otp')
-            user_pass_obj=OneTimePassword.objects.get(otp=passcode)
-            user=user_pass_obj.user
+            user_pass_obj = OneTimePassword.objects.get(otp=passcode)
+            user = user_pass_obj.user
             if not user.is_verified:
-                user.is_verified=True
+                user.is_verified = True
                 user.save()
                 return Response({
-                    'message':'account email verified successfully'
+                    'status': True,
+                    'message': 'Account email verified successfully.',
+                    'data': {
+                        'user': {
+                            'email': user.email,  # assuming username is a field on the user
+                            'is_verified': user.is_verified
+                        }
+                    }
                 }, status=status.HTTP_200_OK)
-            return Response({'message':'passcode is invalid user is already verified'}, status=status.HTTP_204_NO_CONTENT)
-        except OneTimePassword.DoesNotExist as identifier:
-            return Response({'message':'passcode not provided'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            return Response({
+                'status': False,
+                'message': 'Passcode is invalid or user is already verified.',
+            }, status=status.HTTP_204_NO_CONTENT)
+
+        except OneTimePassword.DoesNotExist:
+            return Response({
+                'status': False,
+                'message': 'Passcode not provided or invalid.',
+            }, status=status.HTTP_400_BAD_REQUEST)
         
 class LoginUserView(GenericAPIView):
     serializer_class=LoginSerializer

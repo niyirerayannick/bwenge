@@ -142,7 +142,7 @@ class Project(models.Model):
     submitted_date = models.DateTimeField(auto_now_add=True)
     total_downloads = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-    institution = models.CharField(max_length=100)
+    institution = models.CharField(max_length=100) #CORRECT THIS BY CONNETING
 
     def __str__(self):
         return self.topics

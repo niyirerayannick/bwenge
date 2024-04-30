@@ -7,16 +7,23 @@ from django.contrib.sites.shortcuts import get_current_site
 
 
 def send_generated_otp_to_email(email, request): 
-    subject = "One time passcode for Email verification"
-    otp=random.randint(100000, 99999) 
-    current_site=get_current_site(request).domain
-    user = User.objects.get(email=email)
-    email_body=f"Hi {user.first_name} thanks for signing up on {current_site} please verify your email with the \n one time passcode {otp}"
-    from_email=settings.EMAIL_HOST
-    otp_obj=OneTimePassword.objects.create(user=user, otp=otp)
-    #send the email 
-    d_email=EmailMessage(subject=subject, body=email_body, from_email=from_email, to=[user.email])
+    subject = "One-Time Passcode for Email Verification"
+    otp = random.randint(100000, 999999)  # Correct the range
+    current_site = get_current_site(request).domain
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        # Handle the case where no user is found
+        return "User not found."
+
+    email_body = f"Hi {user.first_name}, thanks for signing up on {current_site}. Please verify your email with this one-time passcode: {otp}"
+    from_email = settings.EMAIL_HOST_USER  # Make sure this is set in your settings
+    otp_obj = OneTimePassword.objects.create(user=user, otp=otp)
+
+    # Send the email 
+    d_email = EmailMessage(subject=subject, body=email_body, from_email=from_email, to=[email])
     d_email.send()
+    return "OTP sent successfully."
 
 
 def send_normal_email(data):
