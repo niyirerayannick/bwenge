@@ -66,8 +66,9 @@ class VerifyUserEmail(GenericAPIView):
                     'message': 'Account email verified successfully.',
                     'data': {
                         'user': {
-                            'email': user.email,  # assuming username is a field on the user
-                            'is_verified': user.is_verified
+                            "id": user.id,  # Ensure that your serializer includes the user id.
+                            'full_name': user.get_full_name if hasattr(user, 'get_full_name') else f"{user.first_name} {user.last_name}",
+                            "email": user.email
                         }
                     }
                 }, status=status.HTTP_200_OK)

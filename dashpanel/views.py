@@ -162,7 +162,31 @@ def add_user(request):
     return render(request, 'admin/user/add_user.html')
 
 def user_list(request):
-    return render(request,"admin/community/community_list.html")
+    users = User.objects.all()  # Fetch all users from the User model
+    return render(request, 'admin/user/user-list.html', {'users': users})
+
+# View user details
+def view_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    return render(request, 'admin/user/view_user.html', {'user': user})
+
+# Edit user details
+def edit_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        # Handle the form submission
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.save()
+        return redirect('user_list')
+    return render(request, 'admin/user/edit_user.html', {'user': user})
+
+# Delete user
+def delete_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        user.delete()
+        return redirect('user_list')
+    return render(request, 'admin/user/confirm_delete.html', {'user': user})
 
 @login_required
 def view_profile(request):

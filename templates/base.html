@@ -155,32 +155,13 @@
                             <span> Dashboard</span>
                         </a>
                     </li>
-                    <li class="submenu">
-                        <a href="javascript:void(0);"><i data-feather="layers"></i>
-                            <span>BWENGE SPOC</span> 
-                            <span class="menu-arrow"></span></a>
-                        <ul>
-                            <li><a href="{% url 'community_list' %}">SPOC List</a></li>
-                            <li><a href="{% url 'add-community' %}">add SPOC</a></li>
-                        </ul>
-                    </li>
-                    <li class="submenu">
-                        <a href="javascript:void(0);">
-                            <i data-feather="layers"></i>
-                            <span>BWENGE MOOC</span>
-                            <span class="menu-arrow"></span>
-                        </a>
-                        <ul>
-                            <li><a href="{% url 'community_list' %}">MOOC List</a></li>
-                            <li><a href="{% url 'add-community' %}">add MOOC</a></li>
-                        </ul>
-                    </li>
+                    
                     <li class="submenu">
                         <a href="javascript:void(0);"><img src="{% static '/img/icons/users1.svg' %}" alt="img">
                             <span> Users</span> <span class="menu-arrow"></span></a>
                         <ul>
                         <li><a href="{% url 'add_user' %}">New User </a></li>
-                        <li><a href="userlists.html">Users List</a></li>
+                        <li><a href="{% url 'user_list' %}">Users List</a></li>
                         </ul>
                         </li>
                     <li class="submenu">
@@ -205,6 +186,28 @@
                             <li><a href="{% url 'add-category' %}">Add Category</a></li>
                         </ul>
                     </li>
+
+                    <li class="submenu">
+                        <a href="javascript:void(0);"><i data-feather="layers"></i>
+                            <span>BWENGE SPOC</span> 
+                            <span class="menu-arrow"></span></a>
+                        <ul>
+                            <li><a href="{% url 'community_list' %}">SPOC List</a></li>
+                            <li><a href="{% url 'add-community' %}">add SPOC</a></li>
+                        </ul>
+                    </li>
+                    <li class="submenu">
+                        <a href="javascript:void(0);">
+                            <i data-feather="layers"></i>
+                            <span>BWENGE MOOC</span>
+                            <span class="menu-arrow"></span>
+                        </a>
+                        <ul>
+                            <li><a href="{% url 'community_list' %}">MOOC List</a></li>
+                            <li><a href="{% url 'add-community' %}">add MOOC</a></li>
+                        </ul>
+                    </li>
+
                     <li class="submenu">
                         <a href="javascript:void(0);">
                             <img src="{% static '/img/icons/purchase1.svg' %}" alt="img">

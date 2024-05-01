@@ -3,13 +3,13 @@ from django.contrib.auth import views as auth_views
 from .views import ( 
     addArticle, addcategory, articleList, categorylist, 
     dashboard,
-    addVideo, delete_category, edit_category, video_detail,
+    addVideo, delete_category, delete_user, edit_category, edit_user, video_detail,
     video_list,community_list,
     user_list,
     add_user,
     adminlogin,
     forgot_password,
-    view_profile,
+    view_profile, view_user,
     # delete_video,
     #  edit_video,
     # delete_user,
@@ -37,11 +37,12 @@ urlpatterns = [
 
     path('add-community/', addArticle, name='add-community'),
     path('community_list/', community_list, name='community_list'),
-
     
-
-    path('user_list/', user_list, name='user_list'),
     path('add_user/', add_user, name='add_user'),
+    path('user_list/', user_list, name='user_list'),
+    path('users/view/<int:user_id>/', view_user, name='view_user'),
+    path('users/edit/<int:user_id>/', edit_user, name='edit_user'),
+    path('users/delete/<int:user_id>/', delete_user, name='delete_user'),
     
     path('profile/', view_profile, name='view_profile'),
 
