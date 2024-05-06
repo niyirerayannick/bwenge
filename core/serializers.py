@@ -6,7 +6,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
-        read_only_fields = ('is_approved',)
+        # read_only_fields = ('is_approved',)
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,7 +26,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = ['id', 'title', 'poster_image', 'description', 'categories', 'likes', 'views', 'author', 'date', 'comments']
-        read_only_fields = ('is_approved',)
+        
 
     def create(self, validated_data):
         categories_data = validated_data.pop('categories', None)
@@ -43,7 +43,7 @@ class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
         fields = ['id', 'title', 'poster_image','video_file', 'description', 'likes', 'categories', 'views', 'author', 'date','comments']
-        read_only_fields = ('is_approved',)
+        
 
     def create(self, validated_data):
         video_data = validated_data.pop('vides', None)
@@ -58,7 +58,7 @@ class CommunitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Community
         fields = '__all__'
-        read_only_fields = ('is_approved',)
+        
 
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
