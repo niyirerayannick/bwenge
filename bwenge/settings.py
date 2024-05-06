@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'rest_framework',
+    'rest_framework.authtoken',
     "core",
     "corsheaders",
     'drf_yasg',
@@ -163,7 +164,8 @@ SOCIAL_AUTH_PASSWORD=env('SOCIAL_AUTH_PASSWORD')
 
 # Directory where Django will look for additional static files, aside from each app's 'static' directory
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'assets'),  # Change this to a different folder from STATIC_ROOT
+     os.path.join(BASE_DIR, 'assets'),  # Change this to a different folder from STATIC_ROOT
+    # os.path.join(BASE_DIR, 'static'),
 )
 
 # URL to use when referring to static files located in STATIC_ROOT
@@ -171,7 +173,7 @@ STATIC_URL = '/static/'
 
 # Directory where the static files will be collected to
 STATIC_ROOT = '/var/www/bwenge/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Good for production
+#STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Good for production
 
 # Media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -189,11 +191,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'byikorererw@gmail.com'
-EMAIL_HOST_PASSWORD = 'orsu rfjj cyuk cmdq' 
+EMAIL_HOST_USER = 'bwengeorg@gmail.com'
+EMAIL_HOST_PASSWORD = 'uvmy fodq jycu inhn' 
 #orsu rfjj cyuk cmdq # Use an App password if 2FA is enabled
 EMAIL_PORT = 587
-DEFAULT_FROM_EMAIL = 'byikorererw@gmail.com'
+DEFAULT_FROM_EMAIL = 'bwengeorg@gmail.com'
 
 
 JAZZMIN_SETTINGS = {

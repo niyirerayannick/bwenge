@@ -44,26 +44,20 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class VerifyUserEmailSerializer(serializers.Serializer):
     otp = serializers.CharField()
 
-class LoginSerializer(serializers.ModelSerializer):
+class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=155, min_length=6)
     password = serializers.CharField(max_length=68, write_only=True)
     full_name = serializers.CharField(max_length=255, read_only=True)
+    telephone = serializers.CharField(max_length=15, read_only=True)  # Added telephone field
     access_token = serializers.CharField(max_length=255, read_only=True)
     refresh_token = serializers.CharField(max_length=255, read_only=True)
-
-    class Meta:
-        model = User
-        fields = ['email', 'password', 'full_name', 'access_token', 'refresh_token']
 
     def validate(self, attrs):
         email = attrs.get('email')
         password = attrs.get('password')
         request = self.context.get('request')
 
-        if not email or not password:
-            raise serializers.ValidationError("Both email and password are required.")
-
-        user = authenticate(request, email=email, password=password)
+        user = authenticate(request, username=email, password=password)
 
         if not user:
             raise AuthenticationFailed("Email or password is invalid. Please check and try again.")
@@ -72,16 +66,13 @@ class LoginSerializer(serializers.ModelSerializer):
             raise AuthenticationFailed("Email is not verified.")
 
         refresh = RefreshToken.for_user(user)
-        tokens = {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }
-
+        
         return {
             'email': user.email,
-            'full_name': user.get_full_name,  # Note: Call the method to get the full name
-            "access_token": tokens['access'],
-            "refresh_token": tokens['refresh']
+            'full_name': user.get_full_name,
+            'telephone': user.telephone,  # Ensuring the telephone number is included in the returned data
+            'access_token': str(refresh.access_token),
+            'refresh_token': str(refresh)
         }
     
 class PasswordResetRequestSerializer(serializers.Serializer):

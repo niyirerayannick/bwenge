@@ -3,6 +3,8 @@ from multiprocessing import context
 from django.forms import ValidationError
 from django.shortcuts import redirect, render
 from rest_framework.generics import GenericAPIView
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from django.contrib import messages
 from rest_framework.response import Response
 from accounts.models import OneTimePassword
@@ -84,18 +86,52 @@ class VerifyUserEmail(GenericAPIView):
                 'message': 'Passcode not provided or invalid.',
             }, status=status.HTTP_400_BAD_REQUEST)
         
-class LoginUserView(GenericAPIView):
-    serializer_class=LoginSerializer
-
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data, context={'request': request})
-        try:
-            serializer.is_valid(raise_exception=True)
-        except ValidationError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response(serializer.data, status=status.HTTP_200_OK)
+class LoginUserView(GenericAPIView):
+    serializer_class = LoginSerializer  # Ensure this serializer properly handles email and password.
 
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password']
+            user = authenticate(username=email, password=password)
+
+            if user and user.is_active:
+                token, created = Token.objects.get_or_create(user=user)
+                user_data = {
+                    'id': user.id,
+                    'full_name': user.get_full_name() if hasattr(user, 'get_full_name') else f"{user.first_name} {user.last_name}",
+                    'email': user.email,
+                    'telephone': getattr(user, 'telephone', 'Not provided')
+                }
+                return Response({
+                    'status': True,
+                    'message': 'Login successful.',
+                    'data': {
+                        'user': user_data,
+                        'token': token.key
+                    }
+                }, status=status.HTTP_200_OK)
+
+            return Response({
+                'status': False,
+                'message': 'Invalid credentials or account inactive.',
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            error_message = serializer.errors
+            if 'email' in error_message:
+                error_detail = 'Invalid email provided.'
+            elif 'password' in error_message:
+                error_detail = 'Invalid password provided.'
+            else:
+                error_detail = 'Invalid input.'
+
+            return Response({
+                'status': False,
+                'message': error_detail,
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class PasswordResetRequestView(GenericAPIView):
     serializer_class=PasswordResetRequestSerializer
