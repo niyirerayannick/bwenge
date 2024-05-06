@@ -1,10 +1,18 @@
 # views.py
-
+from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework import generics
-from rest_framework import status
-from .models import Article, Comment,Category, Community, Post, Reply,Video
-from .serializers import ArticleSerializer, CategorySerializer, CommentSerializer, CommunitySerializer, PostSerializer, ReplySerializer, VideoSerializer
+from rest_framework.permissions import IsAuthenticated,IsAdminUser
+from rest_framework import generics,status
+from .models import (Article, Comment,Category, Community, Post, Reply,Video,Project,
+                     Assignment, Chapter, Choice, Course, Lecture, Question, Quiz, Submission,
+                     Quiz, Question, Choice)
+from .serializers import (ArticleSerializer, CategorySerializer, CommentSerializer, 
+                          CommunitySerializer, PostSerializer, ReplySerializer, ProjectSerializer,
+                          VideoSerializer,CourseSerializer,AssignmentSerializer, ChapterSerializer,
+                            ChoiceSerializer, CourseSerializer,LectureSerializer, QuestionSerializer,
+                              QuizSerializer, SubmissionSerializer,QuizSerializer, QuestionSerializer)
 
 ########################################-ARTICLES VIEWS-######################################################
 
@@ -77,6 +85,40 @@ class CommunityCreate(generics.CreateAPIView):
 class CommunityDetail(generics.RetrieveAPIView):
     queryset = Community.objects.all()
     serializer_class = CommunitySerializer
+########################################-MY community-######################################################
+
+class mycommunuties(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Filter communities by the logged-in user's ID
+        communities = Community.objects.filter(admin=request.user)
+        serializer = CommunitySerializer(communities, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class MyArticlesView(ListAPIView):
+    serializer_class = ArticleSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Return articles that are authored by the currently logged-in user
+        return Article.objects.filter(author=self.request.user)
+    
+class MyProjectsView(ListAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Return projects that are authored by the currently logged-in user
+        return Project.objects.filter(author=self.request.user)
+
+class MyCoursesView(ListAPIView):
+    serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Returns courses that are created by the currently logged-in user
+        return Course.objects.filter(creator=self.request.user)
 
 ##post
 class PostList(generics.ListAPIView):
@@ -106,26 +148,39 @@ class ReplyDetail(generics.RetrieveAPIView):
     serializer_class = ReplySerializer
 
 
-
-from rest_framework import generics
-from .models import Assignment, Chapter, Choice, Course, Lecture, Question, Quiz, Submission
-from .serializers import (AssignmentSerializer, ChapterSerializer, ChoiceSerializer, CourseSerializer,
-LectureSerializer, QuestionSerializer, QuizSerializer, SubmissionSerializer)
-from .models import Quiz, Question, Choice
-from .serializers import QuizSerializer, QuestionSerializer
 ##coursea
 class CourseCreateAPIView(generics.CreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    # permission_classes = [IsAuthenticated]  # Ensure only authenticated users can create courses
+
+    def perform_create(self, serializer):
+        # Automatically set the course creator to the current user
+        serializer.save(creator=self.request.user)
+
+        # Optional: Automatically approve courses for certain users
+        if self.request.user.is_superuser:
+            serializer.save(is_approved=True)
 
 class CourseListAPIView(generics.ListAPIView):
-    queryset = Course.objects.all()
+    queryset = Course.objects.filter(is_approved=True)
     serializer_class = CourseSerializer
 
 class CourseDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
+class ApproveCourseView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, pk):
+        try:
+            course = Course.objects.get(pk=pk)
+            course.is_approved = True
+            course.save()
+            return Response({'status': 'approved'}, status=status.HTTP_200_OK)
+        except Course.DoesNotExist:
+            return Response({'error': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
 ###chapters
 class ChapterCreateAPIView(generics.CreateAPIView):
     queryset = Chapter.objects.all()
@@ -247,29 +302,6 @@ class SubmissionDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 
-# class QuizAPIView(APIView):
-#     def get(self, request, quiz_id):
-#         quiz = get_object_or_404(Quiz, id=quiz_id)
-#         serializer = QuizSerializer(quiz)
-#         return Response(serializer.data)
 
-# class QuestionAPIView(APIView):
-#     def get(self, request, question_id):
-#         question = get_object_or_404(Question, id=question_id)
-#         serializer = QuestionSerializer(question)
-#         return Response(serializer.data)
-
-#     def post(self, request, question_id):
-#         question = get_object_or_404(Question, id=question_id)
-#         choice_id = request.data.get('choice_id')
-#         if choice_id is None:
-#             return Response({'error': 'No choice_id provided'}, status=status.HTTP_400_BAD_REQUEST)
-        
-#         choice = get_object_or_404(Choice, id=choice_id)
-#         if choice.question != question:
-#             return Response({'error': 'Choice does not belong to this question'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         is_correct = choice.is_correct
-#         return Response({'is_correct': is_correct})
 
 

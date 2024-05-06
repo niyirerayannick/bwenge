@@ -19,6 +19,7 @@ class Article(models.Model):
     views = models.PositiveIntegerField(default=0)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
@@ -39,6 +40,7 @@ class Video(models.Model):
     views = models.PositiveIntegerField(default=0)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False)
 
 
 class Comment(models.Model):
@@ -48,6 +50,7 @@ class Comment(models.Model):
     comment = models.TextField()
     reply = models.ForeignKey('self', related_name='replies', null=True, blank=True, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False)
 
     def __str__(self):
         return self.comment
@@ -66,6 +69,7 @@ class Community(models.Model):
     members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='joined_communities')
     created_date = models.DateTimeField(auto_now_add=True)
     categories = models.ManyToManyField(CommunityCategory, related_name='communities')
+    is_approved = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -143,6 +147,7 @@ class Project(models.Model):
     total_downloads = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
     institution = models.CharField(max_length=100) #CORRECT THIS BY CONNETING
+    is_approved = models.BooleanField(default=False)
 
     def __str__(self):
         return self.topics
@@ -150,6 +155,7 @@ class Project(models.Model):
 class Course(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
+    is_approved = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title

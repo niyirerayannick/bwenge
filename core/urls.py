@@ -2,7 +2,7 @@
 
 from django.urls import path
 from . import views
-from .views import (ArticleCreateAPIView, ArticleListAPIView, CreateVideoAPIView,
+from .views import (ArticleCreateAPIView, ArticleListAPIView, CreateVideoAPIView, MyArticlesView, MyCoursesView, MyProjectsView,
           SingleArticleAPIView, CategoryCreateAPIView, SingleCategoryAPIView, 
           CreateCommentAPIView,
           SingleCommentAPIView, SingleVideoAPIView, VideoListAPIView,AssignmentCreateAPIView, 
@@ -11,7 +11,7 @@ from .views import (ArticleCreateAPIView, ArticleListAPIView, CreateVideoAPIView
           CourseListAPIView, CourseDetailAPIView, LectureCreateAPIView,LectureDetailAPIView, LectureListAPIView,
           QuestionCreateAPIView, QuestionDetailAPIView, QuestionListAPIView,QuizCreateAPIView, 
           QuizDetailAPIView, QuizListAPIView, SubmissionCreateAPIView, SubmissionDetailAPIView, 
-          SubmissionListAPIView)
+          SubmissionListAPIView, mycommunuties)
 
 urlpatterns = [
 ########################################-ARTICLE URLS-######################################################
@@ -36,6 +36,12 @@ urlpatterns = [
     path('communities/', views.CommunityList.as_view(), name='community-list'),
     path('communities/create/', views.CommunityCreate.as_view(), name='community-create'),
     path('communities/<int:pk>/', views.CommunityDetail.as_view(), name='community-detail'),
+    #All for single user
+    path('my-communities/', mycommunuties.as_view(), name='my-communities'),
+    path('my-articles/', MyArticlesView.as_view(), name='my-articles'),
+    path('my-projects/', MyProjectsView.as_view(), name='my-projects'),
+    path('my-courses/', MyCoursesView.as_view(), name='my-courses'),
+
     ##post
     path('posts/', views.PostList.as_view(), name='post-list'),
     path('posts/create/', views.PostCreate.as_view(), name='post-create'),
