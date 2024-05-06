@@ -140,6 +140,7 @@ class PasswordResetRequestView(GenericAPIView):
         serializer=self.serializer_class(data=request.data, context={'request':request})
         serializer.is_valid(raise_exception=True)
         return Response({'message':'we have sent you a link to reset your password'}, status=status.HTTP_200_OK)
+       
         # return Response({'message':'user with that email does not exist'}, status=status.HTTP_400_BAD_REQUEST)
     
 

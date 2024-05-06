@@ -23,6 +23,16 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         model=User
         fields = ['id','email','telephone', 'first_name', 'last_name', 'password', 'password2']
 
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with that email already exists.")
+        return value
+
+    def validate_telephone(self, value):
+        if User.objects.filter(telephone=value).exists():
+            raise serializers.ValidationError("A user with that telephone already exists.")
+        return value
+
     def validate(self, attrs):
         password=attrs.get('password', '')
         password2 =attrs.get('password2', '')
