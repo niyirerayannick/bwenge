@@ -152,11 +152,11 @@ class ReplyDetail(generics.RetrieveAPIView):
 class CourseCreateAPIView(generics.CreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    # permission_classes = [IsAuthenticated]  # Ensure only authenticated users can create courses
+    permission_classes = [IsAuthenticated]  # Ensure only authenticated users can create courses
 
     def perform_create(self, serializer):
         # Automatically set the course creator to the current user
-        serializer.save(creator=self.request.user)
+        serializer.save(teacher=self.request.user)
 
         # Optional: Automatically approve courses for certain users
         if self.request.user.is_superuser:

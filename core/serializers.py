@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from bwenge import settings
 from .models import (Article, Comment, Category, Video,Community, Post, Reply, 
 Assignment, Choice, Course, Chapter, Lecture, Question, Quiz, Submission, Project)
 
@@ -85,12 +87,21 @@ class ChapterSerializer(serializers.ModelSerializer):
 
 class CourseSerializer(serializers.ModelSerializer):
     chapters = ChapterSerializer(many=True, read_only=True)
-    
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'chapters']
-        read_only_fields = ('creator','is_approved')
+        fields = ['id', 'title', 'course_image', 'description', 'chapters', 'teacher']
+        read_only_fields = ['is_approved'] 
+
+    def create(self, validated_data):
+        # Map 'creator' to 'teacher' if that's the intent
+        creator = validated_data.pop('creator', None)
+        if creator:
+            validated_data['teacher'] = creator
+
+        course = Course.objects.create(**validated_data)
+        return course
+
 
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:

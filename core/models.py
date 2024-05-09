@@ -155,6 +155,8 @@ class Project(models.Model):
 class Course(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
+    course_image = models.ImageField(upload_to='media/course/posters/')
+    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     is_approved = models.BooleanField(default=False)
 
     def __str__(self):
