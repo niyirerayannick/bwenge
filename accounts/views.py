@@ -1,3 +1,4 @@
+import logging
 from rest_framework import generics
 from multiprocessing import context
 from django.forms import ValidationError
@@ -19,8 +20,10 @@ from django.utils.encoding import smart_str, DjangoUnicodeDecodeError
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework.permissions import IsAuthenticated
 from .models import User, Profile
+from django.contrib.auth import authenticate
+from rest_framework.response import Response
 # Create your views here.
-
+logger = logging.getLogger(__name__)
 
 class RegisterView(GenericAPIView):
     serializer_class = UserRegisterSerializer
@@ -86,52 +89,24 @@ class VerifyUserEmail(GenericAPIView):
                 'message': 'Passcode not provided or invalid.',
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        
 class LoginUserView(GenericAPIView):
-    serializer_class = LoginSerializer  # Ensure this serializer properly handles email and password.
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={'request': request})
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-            password = serializer.validated_data['password']
-            user = authenticate(username=email, password=password)
-
-            if user and user.is_active:
-                token, created = Token.objects.get_or_create(user=user)
-                user_data = {
-                    'id': user.id,
-                    'full_name': user.get_full_name() if hasattr(user, 'get_full_name') else f"{user.first_name} {user.last_name}",
-                    'email': user.email,
-                    'telephone': getattr(user, 'telephone', 'Not provided')
-                }
-                return Response({
-                    'status': True,
-                    'message': 'Login successful.',
-                    'data': {
-                        'user': user_data,
-                        'token': token.key
-                    }
-                }, status=status.HTTP_200_OK)
-
+    serializer_class=LoginSerializer
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        try:
+            serializer.is_valid(raise_exception=True)
+            return Response({
+                'status': True,
+                'data': serializer.validated_data,  # Assuming validated_data should be returned on success
+                'message': 'Login successful.'
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            # Handling generic exceptions which might not be ideal; it's better to handle specific ones
             return Response({
                 'status': False,
-                'message': 'Invalid credentials or account inactive.',
-            }, status=status.HTTP_401_UNAUTHORIZED)
-        else:
-            error_message = serializer.errors
-            if 'email' in error_message:
-                error_detail = 'Invalid email provided.'
-            elif 'password' in error_message:
-                error_detail = 'Invalid password provided.'
-            else:
-                error_detail = 'Invalid input.'
-
-            return Response({
-                'status': False,
-                'message': error_detail,
-                'errors': serializer.errors
+                'message': 'Invalid inputs. Please check your password or  email and try again.'
             }, status=status.HTTP_400_BAD_REQUEST)
+    
 
 class PasswordResetRequestView(GenericAPIView):
     serializer_class=PasswordResetRequestSerializer
