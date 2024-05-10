@@ -23,7 +23,6 @@ from .models import User, Profile
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
 # Create your views here.
-logger = logging.getLogger(__name__)
 
 class RegisterView(GenericAPIView):
     serializer_class = UserRegisterSerializer
@@ -88,25 +87,47 @@ class VerifyUserEmail(GenericAPIView):
                 'status': False,
                 'message': 'Passcode not provided or invalid.',
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
 class LoginUserView(GenericAPIView):
-    serializer_class=LoginSerializer
+    serializer_class = LoginSerializer
+
     def post(self, request):
+        # Instantiate the serializer with request data and additional context if needed
         serializer = self.get_serializer(data=request.data, context={'request': request})
-        try:
-            serializer.is_valid(raise_exception=True)
-            return Response({
-                'status': True,
-                'data': serializer.validated_data,  # Assuming validated_data should be returned on success
-                'message': 'Login successful.'
-            }, status=status.HTTP_200_OK)
-        except Exception as e:
-            # Handling generic exceptions which might not be ideal; it's better to handle specific ones
+        
+        # Validate the serializer and handle errors
+        if not serializer.is_valid():
             return Response({
                 'status': False,
-                'message': 'Invalid inputs. Please check your password or  email and try again.'
+                'message': 'Invalid inputs. Please check your data and try again.',
+                'errors': serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
-    
+        
+        # Extract validated data
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
+        
+        # Authenticate the user
+        user = authenticate(request, username=email, password=password)
+        if user is not None:
+            # Log the user in (you might want to use Django's login function if session-based authentication)
+            return Response({
+                'status': True,
+                'message': 'Login successful.',
+                'data': {
+                    'user': {
+                        "id": user.id,
+                        'full_name': user.get_full_name() if hasattr(user, 'get_full_name') else f"{user.first_name} {user.last_name}",
+                        "email": user.email
+                    }
+                }
+            }, status=status.HTTP_200_OK)
+        else:
+            # Handle failed authentication
+            return Response({
+                'status': False,
+                'message': 'Invalid credentials. Please try again.'
+            }, status=status.HTTP_401_UNAUTHORIZED)
 
 class PasswordResetRequestView(GenericAPIView):
     serializer_class=PasswordResetRequestSerializer
