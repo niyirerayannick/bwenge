@@ -87,48 +87,44 @@ class VerifyUserEmail(GenericAPIView):
                 'status': False,
                 'message': 'Passcode not provided or invalid.',
             }, status=status.HTTP_400_BAD_REQUEST)
-
+        
 class LoginUserView(GenericAPIView):
     serializer_class = LoginSerializer
 
     def post(self, request):
-        # Instantiate the serializer with request data and additional context if needed
-        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer = self.serializer_class(data=request.data, context={'request': request})
         
-        # Validate the serializer and handle errors
-        if not serializer.is_valid():
-            return Response({
-                'status': False,
-                'message': 'Invalid inputs. Please check your data and try again.',
-                'errors': serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Extract validated data
-        email = serializer.validated_data['email']
-        password = serializer.validated_data['password']
-        
-        # Authenticate the user
-        user = authenticate(request, username=email, password=password)
-        if user is not None:
-            # Log the user in (you might want to use Django's login function if session-based authentication)
-            return Response({
-                'status': True,
-                'message': 'Login successful.',
-                'data': {
-                    'user': {
-                        "id": user.id,
-                        'full_name': user.get_full_name() if hasattr(user, 'get_full_name') else f"{user.first_name} {user.last_name}",
-                        "email": user.email
+        # Check if the serializer is valid
+        if serializer.is_valid():
+            # If credentials are valid, retrieve the validated data
+            user_data = serializer.validated_data
+
+            # Construct the successful login response
+            response_data = {
+                "status": True,
+                "message": "Login successfully.",
+                "data": {
+                    "user": {
+                        "id": user_data['id'],
+                        "full_name": user_data['full_name'],
+                        "email": user_data['email'],
+                        "telephone": user_data['telephone'],
+                    },
+                    "tokens": {
+                        "access_token": user_data['access_token'],
+                        "refresh_token": user_data['refresh_token'],
                     }
                 }
-            }, status=status.HTTP_200_OK)
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
         else:
-            # Handle failed authentication
+            # If credentials are invalid, return a custom response
             return Response({
-                'status': False,
-                'message': 'Invalid credentials. Please try again.'
-            }, status=status.HTTP_401_UNAUTHORIZED)
-
+                "status": False,
+                "message": "Email or password is invalid. Please check and try again.",
+                "errors": serializer.errors  # Detailed errors from serializer validation
+            }, status=status.HTTP_400_BAD_REQUEST)
+    
 class PasswordResetRequestView(GenericAPIView):
     serializer_class=PasswordResetRequestSerializer
 

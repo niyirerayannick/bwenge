@@ -151,16 +151,7 @@ class ReplyDetail(generics.RetrieveAPIView):
 class CourseCreateAPIView(generics.CreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [IsAuthenticated]  # Ensure only authenticated users can create courses
-
-    def perform_create(self, serializer):
-        # Automatically set the course creator to the current user
-        serializer.save(teacher=self.request.user)
-
-        # Optional: Automatically approve courses for certain users
-        if self.request.user.is_superuser:
-            serializer.save(is_approved=True)
-
+   
 class CourseListAPIView(generics.ListAPIView):
     queryset = Course.objects.filter(is_approved=True)
     serializer_class = CourseSerializer
@@ -169,18 +160,18 @@ class CourseDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
-class ApproveCourseView(APIView):
-    permission_classes = [IsAdminUser]
+# class ApproveCourseView(APIView):
+#     permission_classes = [IsAdminUser]
 
-    def post(self, request, pk):
-        try:
-            course = Course.objects.get(pk=pk)
-            course.is_approved = True
-            course.save()
-            return Response({'status': 'approved'}, status=status.HTTP_200_OK)
-        except Course.DoesNotExist:
-            return Response({'error': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
-###chapters
+#     def post(self, request, pk):
+#         try:
+#             course = Course.objects.get(pk=pk)
+#             course.is_approved = True
+#             course.save()
+#             return Response({'status': 'approved'}, status=status.HTTP_200_OK)
+#         except Course.DoesNotExist:
+#             return Response({'error': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
+# ###chapters
 class ChapterCreateAPIView(generics.CreateAPIView):
     queryset = Chapter.objects.all()
     serializer_class = ChapterSerializer

@@ -78,9 +78,10 @@ class LoginSerializer(serializers.Serializer):
         refresh = RefreshToken.for_user(user)
         
         return {
+            'id': user.id,  # Include this line to add user ID
             'email': user.email,
             'full_name': user.get_full_name,
-            'telephone': user.telephone,  # Ensuring the telephone number is included in the returned data
+            'telephone': user.telephone,
             'access_token': str(refresh.access_token),
             'refresh_token': str(refresh)
         }
