@@ -2,7 +2,7 @@
 
 from django.urls import path
 from . import views
-from .views import (ArticleCreateAPIView, ArticleListAPIView, CreateVideoAPIView, MyArticlesView, MyCoursesView, MyProjectsView,
+from .views import (ArticleCreateAPIView, ArticleListAPIView, CreateVideoAPIView, MyArticlesView, MyCoursesView, MyProjectsView, ProjectDetailView, ProjectListView,
           SingleArticleAPIView, CategoryCreateAPIView, SingleCategoryAPIView, 
           CreateCommentAPIView,
           SingleCommentAPIView, SingleVideoAPIView, VideoListAPIView,AssignmentCreateAPIView, 
@@ -11,7 +11,7 @@ from .views import (ArticleCreateAPIView, ArticleListAPIView, CreateVideoAPIView
           CourseListAPIView, CourseDetailAPIView, LectureCreateAPIView,LectureDetailAPIView, LectureListAPIView,
           QuestionCreateAPIView, QuestionDetailAPIView, QuestionListAPIView,QuizCreateAPIView, 
           QuizDetailAPIView, QuizListAPIView, SubmissionCreateAPIView, SubmissionDetailAPIView, 
-          SubmissionListAPIView, mycommunuties)
+          SubmissionListAPIView, mycommunuties, ProjectCreateView)
 
 urlpatterns = [
 ########################################-ARTICLE URLS-######################################################
@@ -83,6 +83,10 @@ urlpatterns = [
     path('submissions/', SubmissionListAPIView.as_view(), name='submission-list'),
     path('submissions/create/', SubmissionCreateAPIView.as_view(), name='submission-create'),
     path('submissions/<int:pk>/', SubmissionDetailAPIView.as_view(), name='submission-detail'),
+
+    path('projects/', ProjectListView.as_view(), name='project-list'),
+    path('projects/<int:pk>/', ProjectDetailView.as_view(), name='project-detail'),
+    path('projects/create/', ProjectCreateView.as_view(), name='project-create'),
 
 
 ##special for quiz

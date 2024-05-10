@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.forms import ValidationError
 
+
 class Category(models.Model):
     name = models.CharField(max_length=50)
 
