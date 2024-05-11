@@ -76,7 +76,7 @@ class CommunitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Community
-        fields = ['id', 'name', 'description', 'poster_image', 'admin', 'members', 'created_date', 'categories', 'is_approved']
+        fields = ['id', 'name', 'description', 'poster_image', 'admin', 'members', 'created_date', 'categories']
 
     def create(self, validated_data):
         request = self.context.get('request')
