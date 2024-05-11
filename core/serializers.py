@@ -9,7 +9,7 @@ class InstitutionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ProjectSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    author = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     institution = InstitutionSerializer(read_only=True)
     institution_id = serializers.PrimaryKeyRelatedField(queryset=Institution.objects.all(), write_only=True, source='institution')
 
@@ -71,31 +71,25 @@ class VideoSerializer(serializers.ModelSerializer):
 
 class CommunitySerializer(serializers.ModelSerializer):
     admin = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
-    members = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True, required=False)
     categories = serializers.PrimaryKeyRelatedField(queryset=CommunityCategory.objects.all(), many=True, required=False)
 
     class Meta:
         model = Community
-        fields = ['id', 'name', 'description', 'poster_image', 'admin', 'members', 'created_date', 'categories']
+        fields = ['id', 'name', 'description', 'poster_image', 'admin', 'created_date', 'categories']
 
     def create(self, validated_data):
         request = self.context.get('request')
         validated_data['admin'] = request.user 
-        members_data = validated_data.pop('members', [])
         categories_data = validated_data.pop('categories', [])
         community = Community.objects.create(**validated_data)
-        community.members.set(members_data)
         community.categories.set(categories_data)
         return community
 
     def update(self, instance, validated_data):
-        members_data = validated_data.pop('members', None)
         categories_data = validated_data.pop('categories', None)
         
         instance = super().update(instance, validated_data)
         
-        if members_data is not None:
-            instance.members.set(members_data)
         if categories_data is not None:
             instance.categories.set(categories_data)
 
