@@ -70,7 +70,7 @@ class VideoSerializer(serializers.ModelSerializer):
         return video
 
 class CommunitySerializer(serializers.ModelSerializer):
-    admin = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    admin = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     members = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True, required=False)
     categories = serializers.PrimaryKeyRelatedField(queryset=CommunityCategory.objects.all(), many=True, required=False)
 
@@ -79,6 +79,8 @@ class CommunitySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'poster_image', 'admin', 'members', 'created_date', 'categories', 'is_approved']
 
     def create(self, validated_data):
+        request = self.context.get('request')
+        validated_data['admin'] = request.user 
         members_data = validated_data.pop('members', [])
         categories_data = validated_data.pop('categories', [])
         community = Community.objects.create(**validated_data)
