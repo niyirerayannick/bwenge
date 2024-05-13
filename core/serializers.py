@@ -9,13 +9,9 @@ class InstitutionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ProjectSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
-    institution = InstitutionSerializer(read_only=True)
-    institution_id = serializers.PrimaryKeyRelatedField(queryset=Institution.objects.all(), write_only=True, source='institution')
-
     class Meta:
         model = Project
-        fields = ['id', 'topics', 'description', 'tags', 'file', 'author', 'level', 'submitted_date', 'total_downloads', 'views', 'institution', 'institution_id', 'is_approved']
+        fields = ['id', 'topics', 'description', 'tags', 'file', 'author', 'level', 'submitted_date', 'total_downloads', 'views']
 
     def create(self, validated_data):
         return Project.objects.create(**validated_data)
