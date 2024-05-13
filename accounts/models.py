@@ -3,9 +3,8 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from core import models
 from django.db import models
 from core.models import Institution
-from .managers import  UserManger
+from .managers import UserManager
 from django.contrib.auth.models import AbstractUser
-
 from django.contrib.auth.models import Permission
 
 class UserRolePermissions:
@@ -47,7 +46,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["telephone","first_name", "last_name"]
 
-    objects = UserManger()
+    objects = UserManager()
     
     def __str__(self):
         return self.first_name

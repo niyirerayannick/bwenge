@@ -1,14 +1,12 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from .views import ( 
-    addArticle, addcategory, articleList, categorylist, 
-    dashboard,
-    addVideo, delete_category, delete_user, edit_category, edit_user, video_detail,
-    video_list,community_list,
-    user_list,
-    add_user,
-    adminlogin,
-    forgot_password,
+    addArticle, addcategory, articleList,
+    categorylist, dashboard, addVideo, 
+    delete_category, delete_user, edit_category, 
+    edit_user, video_detail,video_list,
+    community_list,user_list,add_user,
+    adminlogin,forgot_password,
     view_profile, view_user,
     # delete_video,
     #  edit_video,
@@ -18,8 +16,6 @@ from .views import (
 )
 
 urlpatterns = [
-
-   
     path('', dashboard, name='dashboard'),
     path('login', adminlogin, name='adminlogin'),
     path('forget-password', forgot_password , name='forget-password'),
@@ -47,7 +43,7 @@ urlpatterns = [
     path('profile/', view_profile, name='view_profile'),
 
 
-    #  path('profile/edit/', edit_profile, name='edit_profile'),
+    # path('profile/edit/', edit_profile, name='edit_profile'),
     # path('dashboard/video/<int:video_id>/edit/', edit_video, name='edit_video'),
     # path('dashboard/video/<int:video_id>/delete/', delete_video, name='delete_video'),
     # path('dashboard/user/<int:user_id>/', delete_user, name='delete_user'),

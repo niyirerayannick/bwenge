@@ -66,7 +66,7 @@ class Community(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     poster_image = models.ImageField(upload_to='media/posters/')
-    admin = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='administered_communities', on_delete=models.CASCADE)
+    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='joined_communities')
     created_date = models.DateTimeField(auto_now_add=True)
     categories = models.ManyToManyField(CommunityCategory, related_name='communities')
@@ -115,14 +115,11 @@ class Reply(models.Model):
         return f"Reply by {self.author.email} on post '{self.post.title}'"
 
 
-
-
 class Institution(models.Model):
     name = models.CharField(max_length=100)
+    telephone = models.CharField(max_length=15, unique=True, verbose_name=("Telephone"))
     logo = models.ImageField(upload_to='institution_logos/')
     email = models.EmailField(unique=True)
-    location = models.CharField(max_length=100)
-    members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='institution_members')
 
     def __str__(self):
         return self.name

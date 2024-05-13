@@ -1,5 +1,7 @@
 
+from accounts.managers import UserManager
 from bwenge import settings
+from core.models import Institution
 from .models import User, Profile
 from rest_framework import serializers
 from django.contrib.auth import authenticate
@@ -13,6 +15,41 @@ from .utils import send_normal_email
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from .google import Google, register_social_user
 from .github import Github
+
+
+class InstitutionRegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(max_length=68, min_length=6, write_only=True)
+    password2 = serializers.CharField(max_length=68, min_length=6, write_only=True)
+
+    class Meta:
+        model = Institution
+        fields = ['id', 'email', 'telephone', 'name', 'password', 'password2']
+
+    def validate_email(self, value):
+        if Institution.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with that email already exists.")
+        return value
+
+    def validate_telephone(self, value):
+        if Institution.objects.filter(telephone=value).exists():
+            raise serializers.ValidationError("A user with that telephone already exists.")
+        return value
+
+    def validate(self, attrs):
+        password = attrs.get('password', '')
+        password2 = attrs.get('password2', '')
+        if password != password2:
+            raise serializers.ValidationError("Passwords do not match")
+        return attrs
+
+    def create(self, validated_data):
+        institution = UserManager().create_institution(
+            email=validated_data['email'],
+            telephone=validated_data.get('telephone'),
+            name=validated_data.get('name'),
+            password=validated_data.get('password')
+        )
+        return institution
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -78,10 +115,9 @@ class LoginSerializer(serializers.Serializer):
         refresh = RefreshToken.for_user(user)
         
         return {
-            'id': user.id,  # Include this line to add user ID
             'email': user.email,
             'full_name': user.get_full_name,
-            'telephone': user.telephone,
+            'telephone': user.telephone,  # Ensuring the telephone number is included in the returned data
             'access_token': str(refresh.access_token),
             'refresh_token': str(refresh)
         }

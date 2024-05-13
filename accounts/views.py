@@ -10,7 +10,7 @@ from django.contrib import messages
 from rest_framework.response import Response
 from accounts.models import OneTimePassword
 from django.contrib.auth import authenticate, login
-from accounts.serializers import  (GithubLoginSerializer, GoogleSignInSerializer, LoginSerializer,
+from accounts.serializers import  (GithubLoginSerializer, GoogleSignInSerializer, InstitutionRegisterSerializer, LoginSerializer,
                                     LogoutUserSerializer, PasswordResetRequestSerializer,SetNewPasswordSerializer, 
                                     UserRegisterSerializer, VerifyUserEmailSerializer, ProfileSerializer)
 from rest_framework import status
@@ -24,7 +24,7 @@ from django.contrib.auth import authenticate
 from rest_framework.response import Response
 # Create your views here.
 
-class RegisterView(GenericAPIView):
+class RegisterUserView(GenericAPIView):
     serializer_class = UserRegisterSerializer
 
     def post(self, request):
@@ -52,6 +52,37 @@ class RegisterView(GenericAPIView):
             "message": "Failed to register.",
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RegisterInstutionView(GenericAPIView):
+    serializer_class = InstitutionRegisterSerializer
+
+    def post(self, request):
+        user = request.data
+        serializer=self.serializer_class(data=user)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            user_data=serializer.data
+            send_generated_otp_to_email(user_data['email'], request)
+            return Response({
+                "status": True,
+                "message": "Thanks for signing up! A passcode has been sent to verify your email.",
+                "data": {
+                    "user": {
+                        "id": user_data['id'],  # Ensure that your serializer includes the user id.
+                        'telephone': user_data['telephone'],
+                        "email": user_data['email']
+                    }
+                }
+            }, status=status.HTTP_201_CREATED)
+
+        # Returning errors with a consistent structure.
+        return Response({
+            "status": False,
+            "message": "Failed to register.",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class VerifyUserEmail(GenericAPIView):
