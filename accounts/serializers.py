@@ -100,28 +100,31 @@ class LoginSerializer(serializers.Serializer):
     refresh_token = serializers.CharField(max_length=255, read_only=True)
 
     def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.get('password')
-        request = self.context.get('request')
+      email = attrs.get('email')
+      password = attrs.get('password')
+      request = self.context.get('request')
 
-        user = authenticate(request, username=email, password=password)
+      user = authenticate(request, username=email, password=password)
 
-        if not user:
-            raise AuthenticationFailed("Email or password is invalid. Please check and try again.")
+      if not user:
+        raise AuthenticationFailed("Email or password is invalid. Please check and try again.")
 
-        if not user.is_verified:
-            raise AuthenticationFailed("Email is not verified.")
+      if not user.is_verified:
+        raise AuthenticationFailed("Email is not verified.")
 
-        refresh = RefreshToken.for_user(user)
-        
-        return {
-            'id': user.id,
-            'email': user.email,
-            'full_name': user.get_full_name,
-            'telephone': user.telephone,  # Ensuring the telephone number is included in the returned data
-            'access_token': str(refresh.access_token),
-            'refresh_token': str(refresh)
-        }
+      refresh = RefreshToken.for_user(user)
+    
+    # Add 'id' key to user_data dictionary
+      user_data = {
+        'id': user.id,
+        'email': user.email,
+        'full_name': user.get_full_name,
+        'telephone': user.telephone,
+        'access_token': str(refresh.access_token),
+        'refresh_token': str(refresh) }
+
+      return user_data
+
     
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=255)
