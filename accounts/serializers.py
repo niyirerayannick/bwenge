@@ -99,6 +99,10 @@ class LoginSerializer(serializers.Serializer):
     access_token = serializers.CharField(max_length=255, read_only=True)
     refresh_token = serializers.CharField(max_length=255, read_only=True)
 
+    class Meta:
+        model = User
+        fields = ['id','email', 'password', 'full_name', 'access_token', 'refresh_token']
+
     def validate(self, attrs):
         email = attrs.get('email')
         password = attrs.get('password')
