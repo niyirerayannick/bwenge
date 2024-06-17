@@ -140,6 +140,7 @@ class LoginUserView(GenericAPIView):
                         "full_name": user_data['full_name'],
                         "email": user_data['email'],
                         "telephone": user_data['telephone'],
+                        "role": user_data['role'],
                     },
                     "tokens": {
                         "access_token": user_data['access_token'],
