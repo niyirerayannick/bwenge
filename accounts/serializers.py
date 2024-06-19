@@ -16,22 +16,21 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from .google import Google, register_social_user
 from .github import Github
 
-
 class InstitutionRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=68, min_length=6, write_only=True)
     password2 = serializers.CharField(max_length=68, min_length=6, write_only=True)
 
     class Meta:
-        model = Institution
-        fields = ['id', 'email', 'telephone', 'name', 'password', 'password2']
+        model = User
+        fields = ['id', 'email', 'telephone', 'first_name', 'password', 'password2']
 
     def validate_email(self, value):
-        if Institution.objects.filter(email=value).exists():
+        if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("A user with that email already exists.")
         return value
 
     def validate_telephone(self, value):
-        if Institution.objects.filter(telephone=value).exists():
+        if User.objects.filter(telephone=value).exists():
             raise serializers.ValidationError("A user with that telephone already exists.")
         return value
 
@@ -43,10 +42,10 @@ class InstitutionRegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        institution = UserManager().create_institution(
+        institution = User.objects.create_institution(
             email=validated_data['email'],
             telephone=validated_data.get('telephone'),
-            name=validated_data.get('name'),
+            name=validated_data.get('first_name'),  # assuming name is stored in first_name
             password=validated_data.get('password')
         )
         return institution
