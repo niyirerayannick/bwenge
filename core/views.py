@@ -151,6 +151,11 @@ class ReplyDetail(generics.RetrieveAPIView):
 class CourseCreateAPIView(generics.CreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticated]  # Adjust permissions as needed
+
+    def perform_create(self, serializer):
+        # Set creator based on the logged-in user
+        serializer.save(creator=self.request.user)
    
 class CourseListAPIView(generics.ListAPIView):
     queryset = Course.objects.filter(is_approved=True)

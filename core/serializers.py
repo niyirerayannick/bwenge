@@ -2,11 +2,9 @@ from rest_framework import serializers
 from accounts.models import User
 from .models import (Article, Comment, Category, Institution, Video,Community, CommunityCategory,Post, Reply, 
 Assignment, Choice, Course, Chapter, Lecture, Question, Quiz, Submission, Project)
+from django.contrib.auth import get_user_model 
+User = get_user_model()
 
-class InstitutionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Institution
-        fields = '__all__'
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
@@ -71,8 +69,7 @@ class CommunitySerializer(serializers.ModelSerializer):
             instance.categories.set(categories_data)
 
         return instance
-   
-    
+       
 
 class VideoSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
@@ -112,14 +109,30 @@ class ChapterSerializer(serializers.ModelSerializer):
         model = Chapter
         fields = ['id', 'title', 'lectures']
 
+
+
 class CourseSerializer(serializers.ModelSerializer):
     chapters = ChapterSerializer(many=True, read_only=True)
+    course_type = serializers.CharField(source='get_course_type_display', read_only=True)
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'course_image', 'description', 'chapters', 'teacher']
+        fields = ['id', 'title', 'description', 'course_image', 'chapters', 'teacher', 'is_approved', 'course_type']
 
     def create(self, validated_data):
+        user = self.context['request'].user
+        creator_role = None
+
+        # Check if user is admin or institution_admin
+        if user.is_superuser or user.is_institution_admin:
+            creator_role = 'admin'
+        else:
+            creator_role = 'user'
+
+        # Ensure SPOC courses can only be created by admin or institution_admin
+        if validated_data.get('course_type') == Course.SPOC and creator_role != 'admin':
+            raise serializers.ValidationError("You are not authorized to create SPOC courses.")
+
         # Map 'creator' to 'teacher' if that's the intent
         creator = validated_data.pop('creator', None)
         if creator:
