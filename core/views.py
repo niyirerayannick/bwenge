@@ -117,7 +117,24 @@ class MyCoursesView(ListAPIView):
 
     def get_queryset(self):
         # Returns courses that are created by the currently logged-in user
-        return Course.objects.filter(creator=self.request.user)
+        return Course.objects.filter(teacher=self.request.user)
+
+class MyStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        total_communities = Community.objects.filter(admin=request.user).count()
+        total_articles = Article.objects.filter(author=request.user).count()
+        total_projects = Project.objects.filter(author=request.user).count()
+        total_courses = Course.objects.filter(teacher=request.user).count()
+        
+        response_data = {
+            'total_communities': total_communities,
+            'total_articles': total_articles,
+            'total_projects': total_projects,
+            'total_courses': total_courses
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
 
 ##post
 class PostList(generics.ListAPIView):

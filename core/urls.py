@@ -2,7 +2,7 @@
 
 from django.urls import path
 from . import views
-from .views import (ArticleCreateAPIView, ArticleListAPIView, CreateVideoAPIView, MyArticlesView, MyCoursesView, MyProjectsView, ProjectDetailView, ProjectListView,
+from .views import (ArticleCreateAPIView, ArticleListAPIView, CreateVideoAPIView, MyArticlesView, MyCoursesView, MyProjectsView, MyStatisticsView, ProjectDetailView, ProjectListView,
           SingleArticleAPIView, CategoryCreateAPIView, SingleCategoryAPIView, 
           CreateCommentAPIView,
           SingleCommentAPIView, SingleVideoAPIView, VideoListAPIView,AssignmentCreateAPIView, 
@@ -41,6 +41,7 @@ urlpatterns = [
     path('my-articles/', MyArticlesView.as_view(), name='my-articles'),
     path('my-projects/', MyProjectsView.as_view(), name='my-projects'),
     path('my-courses/', MyCoursesView.as_view(), name='my-courses'),
+    path('mystatistics/', MyStatisticsView.as_view(), name='mystatistics'),
 
     ##post
     path('posts/', views.PostList.as_view(), name='post-list'),
