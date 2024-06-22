@@ -1,5 +1,6 @@
 # views.py
 from rest_framework.views import APIView
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated,IsAdminUser, IsAuthenticatedOrReadOnly
@@ -168,11 +169,11 @@ class ReplyDetail(generics.RetrieveAPIView):
 class CourseCreateAPIView(generics.CreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    # permission_classes = [IsAuthenticated]  # Adjust permissions as needed
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        # Set creator based on the logged-in user
-        serializer.save(creator=self.request.user)
+        # Set teacher based on the logged-in user
+        serializer.save(teacher=self.request.user)
    
 class CourseListAPIView(generics.ListAPIView):
     queryset = Course.objects.filter(is_approved=True)

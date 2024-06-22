@@ -151,11 +151,16 @@ class Project(models.Model):
         return self.topics
 
 class Course(models.Model):
+    COURSE_TYPE_CHOICES = [
+        ('regular', 'Regular'),
+        ('spoc', 'SPOC'),
+    ]
     title = models.CharField(max_length=100)
     description = models.TextField()
     course_image = models.ImageField(upload_to='media/course/posters/')
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     is_approved = models.BooleanField(default=True)
+    course_type = models.CharField(max_length=20, choices=COURSE_TYPE_CHOICES, default='regular')
 
     def __str__(self):
         return self.title

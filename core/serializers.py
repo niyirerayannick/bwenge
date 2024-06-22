@@ -109,8 +109,6 @@ class ChapterSerializer(serializers.ModelSerializer):
         model = Chapter
         fields = ['id', 'title', 'lectures']
 
-
-
 class CourseSerializer(serializers.ModelSerializer):
     chapters = ChapterSerializer(many=True, read_only=True)
     course_type = serializers.CharField(source='get_course_type_display', read_only=True)
@@ -124,23 +122,20 @@ class CourseSerializer(serializers.ModelSerializer):
         creator_role = None
 
         # Check if user is admin or institution_admin
-        if user.is_superuser or user.is_institution_admin:
+        if user.is_superuser or getattr(user, 'is_institution_admin', False):
             creator_role = 'admin'
         else:
             creator_role = 'user'
 
         # Ensure SPOC courses can only be created by admin or institution_admin
-        if validated_data.get('course_type') == Course.SPOC and creator_role != 'admin':
+        if validated_data.get('course_type') == 'spoc' and creator_role != 'admin':
             raise serializers.ValidationError("You are not authorized to create SPOC courses.")
 
-        # Map 'creator' to 'teacher' if that's the intent
-        creator = validated_data.pop('creator', None)
-        if creator:
-            validated_data['teacher'] = creator
+        # Set teacher to the logged-in user
+        validated_data['teacher'] = user
 
         course = Course.objects.create(**validated_data)
         return course
-
 
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
