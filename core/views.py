@@ -120,7 +120,7 @@ class MyCoursesView(ListAPIView):
         return Course.objects.filter(teacher=self.request.user)
 
 class MyStatisticsView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         total_communities = Community.objects.filter(admin=request.user).count()
@@ -168,7 +168,7 @@ class ReplyDetail(generics.RetrieveAPIView):
 class CourseCreateAPIView(generics.CreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [IsAuthenticated]  # Adjust permissions as needed
+    # permission_classes = [IsAuthenticated]  # Adjust permissions as needed
 
     def perform_create(self, serializer):
         # Set creator based on the logged-in user
