@@ -152,7 +152,7 @@ class Project(models.Model):
 
 class Course(models.Model):
     COURSE_TYPE_CHOICES = [
-        ('regular', 'Regular'),
+        ('regular', 'Regular'), #mooc
         ('spoc', 'SPOC'),
     ]
     title = models.CharField(max_length=100)
