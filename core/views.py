@@ -88,7 +88,7 @@ class CommunityDetail(generics.RetrieveAPIView):
 ########################################-MY community-######################################################
 
 class mycommunuties(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         # Filter communities by the logged-in user's ID
@@ -98,7 +98,7 @@ class mycommunuties(APIView):
 
 class MyArticlesView(ListAPIView):
     serializer_class = ArticleSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         # Return articles that are authored by the currently logged-in user
@@ -106,7 +106,7 @@ class MyArticlesView(ListAPIView):
     
 class MyProjectsView(ListAPIView):
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         # Return projects that are authored by the currently logged-in user
@@ -114,14 +114,14 @@ class MyProjectsView(ListAPIView):
 
 class MyCoursesView(ListAPIView):
     serializer_class = CourseSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         # Returns courses that are created by the currently logged-in user
         return Course.objects.filter(teacher=self.request.user)
 
 class MyStatisticsView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         total_communities = Community.objects.filter(admin=request.user).count()
