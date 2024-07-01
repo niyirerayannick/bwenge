@@ -323,11 +323,11 @@ class ProjectDetailView(generics.RetrieveAPIView):
 class ProjectCreateView(generics.CreateAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
-    # def perform_create(self, serializer):
-    #     # Automatically set the author to the logged in user during project creation
-    #     serializer.save(author=self.request.user)
+    def perform_create(self, serializer):
+        # Automatically set the author to the logged in user during project creation
+        serializer.save(author=self.request.user)
 
 
 
