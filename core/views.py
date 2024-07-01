@@ -176,8 +176,8 @@ class CourseCreateAPIView(generics.CreateAPIView):
     def perform_create(self, serializer):
         # Set the default course type to 'mooc' if not provided
         course_type = self.request.data.get('course_type', 'mooc')
-        # Save the course with the provided teacher and course_type
-        serializer.save(course_type=course_type)
+        # Set teacher to the logged-in user and course_type to the determined value
+        serializer.save(teacher=self.request.user, course_type=course_type)
 
 
 class CourseListAPIView(generics.ListAPIView):
