@@ -122,28 +122,15 @@ class CourseSerializer(serializers.ModelSerializer):
         user = request.user
         if not user.is_authenticated:
             raise serializers.ValidationError("You must be logged in to create a course.")
+
+        # Ensure course_type is set, defaulting to 'mooc'
+        course_type = self.initial_data.get('course_type', 'mooc')
         
-        course_type = self.initial_data.get('course_type')
-        creator_role = None
-
-        # Check if user is admin or institution_admin
-        if user.is_superuser or getattr(user, 'is_institution_admin', False):
-            creator_role = 'admin'
-        else:
-            creator_role = 'user'
-
-        # Ensure SPOC courses can only be created by admin or institution_admin
-        if course_type == 'spoc' and creator_role != 'admin':
-            raise serializers.ValidationError("You are not authorized to create SPOC courses.")
-
         # Set teacher to the logged-in user
         validated_data['teacher'] = user
-        validated_data['course_type'] = course_type  # Ensure course_type is set
-
-        course = Course.objects.create(**validated_data)
-        return course
-
-
+        validated_data['course_type'] = course_type
+        return super().create(validated_data)
+    
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice

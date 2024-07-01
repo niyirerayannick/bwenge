@@ -1,10 +1,13 @@
 # views.py
 from rest_framework.views import APIView
+from rest_framework import generics, permissions
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated,IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework import generics,status
+
+from accounts import serializers
 from .models import (Article, Comment,Category, Community, Post, Reply,Video,Project,
                      Assignment, Chapter, Choice, Course, Lecture, Question, Quiz, Submission,
                      Quiz, Question, Choice)
@@ -164,13 +167,26 @@ class ReplyDetail(generics.RetrieveAPIView):
     queryset = Reply.objects.all()
     serializer_class = ReplySerializer
 
-
 ##coursea
 class CourseCreateAPIView(generics.CreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [IsAuthenticated]
-   
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        course_type = self.request.data.get('course_type', 'mooc')  # Default to 'mooc' if not provided
+        user = self.request.user
+
+        # Check if user is admin or institution_admin
+        creator_role = 'admin' if user.is_superuser or getattr(user, 'is_institution_admin', False) else 'user'
+
+        # Ensure SPOC courses can only be created by admin or institution_admin
+        if course_type == 'spoc' and creator_role != 'admin':
+            raise serializers.ValidationError("You are not authorized to create SPOC courses.")
+
+        # Set teacher to the logged-in user
+        serializer.save(teacher=user, course_type=course_type)
+               
 class CourseListAPIView(generics.ListAPIView):
     queryset = Course.objects.filter(is_approved=True)
     serializer_class = CourseSerializer
