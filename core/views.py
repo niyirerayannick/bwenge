@@ -171,6 +171,7 @@ class ReplyDetail(generics.RetrieveAPIView):
 class CourseCreateAPIView(generics.CreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
         # Set the default course type to 'mooc' if not provided
