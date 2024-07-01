@@ -115,22 +115,15 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'course_image', 'chapters', 'teacher', 'is_approved', 'course_type']
+        fields = ['id', 'title', 'description', 'course_image', 'chapters','course_type', 'teacher', 'is_approved']
 
     def create(self, validated_data):
-        request = self.context.get('request')
-        user = request.user
-        if not user.is_authenticated:
-            raise serializers.ValidationError("You must be logged in to create a course.")
-
-        # Ensure course_type is set, defaulting to 'mooc'
+        # Set the default course type to 'mooc' if not provided
         course_type = self.initial_data.get('course_type', 'mooc')
-        
-        # Set teacher to the logged-in user
-        validated_data['teacher'] = user
         validated_data['course_type'] = course_type
         return super().create(validated_data)
     
+
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice

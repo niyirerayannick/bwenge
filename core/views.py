@@ -171,22 +171,15 @@ class ReplyDetail(generics.RetrieveAPIView):
 class CourseCreateAPIView(generics.CreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        course_type = self.request.data.get('course_type', 'mooc')  # Default to 'mooc' if not provided
-        user = self.request.user
+        # Set the default course type to 'mooc' if not provided
+        course_type = self.request.data.get('course_type', 'mooc')
+        # Set teacher to the logged-in user and course_type to the determined value
+        serializer.save(teacher=self.request.user, course_type=course_type)
 
-        # Check if user is admin or institution_admin
-        creator_role = 'admin' if user.is_superuser or getattr(user, 'is_institution_admin', False) else 'user'
 
-        # Ensure SPOC courses can only be created by admin or institution_admin
-        if course_type == 'spoc' and creator_role != 'admin':
-            raise serializers.ValidationError("You are not authorized to create SPOC courses.")
-
-        # Set teacher to the logged-in user
-        serializer.save(teacher=user, course_type=course_type)
-               
 class CourseListAPIView(generics.ListAPIView):
     queryset = Course.objects.filter(is_approved=True)
     serializer_class = CourseSerializer
@@ -339,11 +332,11 @@ class ProjectDetailView(generics.RetrieveAPIView):
 class ProjectCreateView(generics.CreateAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        # Automatically set the author to the logged in user during project creation
-        serializer.save(author=self.request.user)
+    # def perform_create(self, serializer):
+    #     # Automatically set the author to the logged in user during project creation
+    #     serializer.save(author=self.request.user)
 
 
 
