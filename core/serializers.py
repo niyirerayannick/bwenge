@@ -115,14 +115,13 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'course_image', 'chapters','course_type', 'teacher', 'is_approved']
+        fields = ['id', 'title', 'description', 'course_image', 'chapters', 'teacher', 'is_approved', 'course_type']
 
     def create(self, validated_data):
         # Set the default course type to 'mooc' if not provided
         course_type = self.initial_data.get('course_type', 'mooc')
         validated_data['course_type'] = course_type
         return super().create(validated_data)
-    
 
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
