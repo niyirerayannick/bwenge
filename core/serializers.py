@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from accounts.models import User
-from .models import (Article, Comment, Category, Institution, Video,Community, CommunityCategory,Post, Reply, 
+from .models import (Article, Comment, Category, Institution, StudentCourse, Video,Community, CommunityCategory,Post, Reply, 
 Assignment, Choice, Course, Chapter, Lecture, Question, Quiz, Submission, Project)
 from django.contrib.auth import get_user_model 
 User = get_user_model()
@@ -154,3 +154,32 @@ class AssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment
         fields = ['id', 'title', 'description', 'due_date', 'submissions']
+
+
+class StudentEnrollmentSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        try:
+            user = User.objects.get(email=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User with this email does not exist.")
+
+        return value
+
+    def create(self, validated_data):
+        # Retrieve course_id from context or validated_data
+        course_id = self.context.get('course_id')  # Ensure to handle context properly
+
+        # Retrieve the course object
+        course = Course.objects.get(id=course_id)
+
+        # Check if the student is already enrolled
+        if course.enrollments.filter(student__email=validated_data['email']).exists():
+            raise serializers.ValidationError("Student is already enrolled in this course.")
+
+        # Enroll the student in the course
+        student = User.objects.get(email=validated_data['email'])
+        student_course = StudentCourse.objects.create(student=student, course=course)
+
+        return student_course

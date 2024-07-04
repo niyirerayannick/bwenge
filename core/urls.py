@@ -2,7 +2,7 @@
 
 from django.urls import path
 from . import views
-from .views import (ArticleCreateAPIView, ArticleListAPIView, CreateVideoAPIView, MyArticlesView, MyCoursesView, MyProjectsView, MyStatisticsView, ProjectDetailView, ProjectListView,
+from .views import (AddStudentToCourseAPIView, ArticleCreateAPIView, ArticleListAPIView, CreateVideoAPIView, MyArticlesView, MyCoursesView, MyProjectsView, MyStatisticsView, ProjectDetailView, ProjectListView,
           SingleArticleAPIView, CategoryCreateAPIView, SingleCategoryAPIView, 
           CreateCommentAPIView,
           SingleCommentAPIView, SingleVideoAPIView, VideoListAPIView,AssignmentCreateAPIView, 
@@ -93,4 +93,6 @@ urlpatterns = [
 ##special for quiz
 #     path('quiz/<int:quiz_id>/', QuizAPIView.as_view(), name='quiz-detail'),
 #     path('question/<int:question_id>/', QuestionAPIView.as_view(), name='question-detail'),
+
+    path('course/<int:course_id>/add_student/', AddStudentToCourseAPIView.as_view(), name='add_student_to_course'),
 ]

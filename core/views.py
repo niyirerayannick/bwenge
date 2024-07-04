@@ -1,4 +1,6 @@
 # views.py
+from turtle import pd
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
 from rest_framework import generics, permissions
 from rest_framework.exceptions import PermissionDenied
@@ -6,13 +8,13 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated,IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework import generics,status
-
 from accounts import serializers
-from .models import (Article, Comment,Category, Community, Post, Reply,Video,Project,
+from accounts.models import User
+from .models import (Article, Comment,Category, Community, Post, Reply, StudentCourse,Video,Project,
                      Assignment, Chapter, Choice, Course, Lecture, Question, Quiz, Submission,
                      Quiz, Question, Choice)
 from .serializers import (ArticleSerializer, CategorySerializer, CommentSerializer, 
-                          CommunitySerializer, PostSerializer, ReplySerializer, ProjectSerializer,
+                          CommunitySerializer, PostSerializer, ReplySerializer, ProjectSerializer, StudentEnrollmentSerializer,
                           VideoSerializer,CourseSerializer,AssignmentSerializer, ChapterSerializer,
                             ChoiceSerializer, CourseSerializer,LectureSerializer, QuestionSerializer,
                               QuizSerializer, SubmissionSerializer,QuizSerializer, QuestionSerializer)
@@ -337,8 +339,13 @@ class ProjectCreateView(generics.CreateAPIView):
     #     # Automatically set the author to the logged in user during project creation
     #     serializer.save(author=self.request.user)
 
+class AddStudentToCourseAPIView(generics.CreateAPIView):
+    serializer_class = StudentEnrollmentSerializer
 
+    def perform_create(self, serializer):
+        course_id = self.kwargs.get('course_id')
+        serializer.save(course_id=course_id)
 
-
-
-
+    def post(self, request, *args, **kwargs):
+        course_id = kwargs.get('course_id')
+        return self.create(request, *args, **kwargs)

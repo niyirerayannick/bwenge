@@ -152,7 +152,7 @@ class Project(models.Model):
 
 class Course(models.Model):
     COURSE_TYPE_CHOICES = [
-        ('regular', 'Regular'), #mooc
+        ('mooc', 'Mooc'), #mooc
         ('spoc', 'SPOC'),
     ]
     title = models.CharField(max_length=100)
@@ -222,3 +222,11 @@ class Submission(models.Model):
     # def __str__(self):
     #     return self.student
 
+
+class StudentCourse(models.Model):
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student.get_full_name()} - {self.course.title}"
