@@ -142,7 +142,7 @@ class Project(models.Model):
     submitted_date = models.DateTimeField(auto_now_add=True)
     total_downloads = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-    institution = models.ForeignKey(Institution, null=True, on_delete=models.SET_NULL) #CORRECT THIS BY CONNETING
+    # institution = models.ForeignKey(Institution, null=True, on_delete=models.SET_NULL) #CORRECT THIS BY CONNETING
     is_approved = models.BooleanField(default=True)
 
     def __str__(self):
