@@ -1,20 +1,20 @@
 # views.py
 from turtle import pd
-from rest_framework.parsers import MultiPartParser, FormParser
+import logging
+
+from accounts.models import User
+logger = logging.getLogger(__name__)
 from rest_framework.views import APIView
 from rest_framework import generics, permissions
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated,IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import generics,status
-from accounts import serializers
-from accounts.models import User
-from .models import (Article, Comment,Category, Community, Post, Reply, StudentCourse,Video,Project,
+from .models import (Article, Comment,Category, Community, Enrollment, Post, Reply,Video,Project,
                      Assignment, Chapter, Choice, Course, Lecture, Question, Quiz, Submission,
                      Quiz, Question, Choice)
 from .serializers import (ArticleSerializer, CategorySerializer, CommentSerializer, 
-                          CommunitySerializer, PostSerializer, ReplySerializer, ProjectSerializer, StudentEnrollmentSerializer,
+                          CommunitySerializer, EnrollmentSerializer, JoinCommunitySerializer, PostSerializer, ReplySerializer, ProjectSerializer,
                           VideoSerializer,CourseSerializer,AssignmentSerializer, ChapterSerializer,
                             ChoiceSerializer, CourseSerializer,LectureSerializer, QuestionSerializer,
                               QuizSerializer, SubmissionSerializer,QuizSerializer, QuestionSerializer)
@@ -90,6 +90,27 @@ class CommunityCreate(generics.CreateAPIView):
 class CommunityDetail(generics.RetrieveAPIView):
     queryset = Community.objects.all()
     serializer_class = CommunitySerializer
+
+class JoinCommunityView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        serializer = JoinCommunitySerializer(data={'community_id': pk})
+        if serializer.is_valid():
+            community_id = serializer.validated_data['community_id']
+            try:
+                community = Community.objects.get(pk=community_id)
+            except Community.DoesNotExist:
+                return Response({'detail': 'Community not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            user = request.user
+            if user in community.members.all():
+                return Response({'detail': 'You are already a member of this community.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            community.members.add(user)
+            return Response({'detail': 'Joined community successfully.'}, status=status.HTTP_204_NO_CONTENT)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 ########################################-MY community-######################################################
 
 class mycommunuties(APIView):
@@ -189,17 +210,6 @@ class CourseDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
-# class ApproveCourseView(APIView):
-#     permission_classes = [IsAdminUser]
-
-#     def post(self, request, pk):
-#         try:
-#             course = Course.objects.get(pk=pk)
-#             course.is_approved = True
-#             course.save()
-#             return Response({'status': 'approved'}, status=status.HTTP_200_OK)
-#         except Course.DoesNotExist:
-#             return Response({'error': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
 # ###chapters
 class ChapterCreateAPIView(generics.CreateAPIView):
     queryset = Chapter.objects.all()
@@ -338,14 +348,104 @@ class ProjectCreateView(generics.CreateAPIView):
     # def perform_create(self, serializer):
     #     # Automatically set the author to the logged in user during project creation
     #     serializer.save(author=self.request.user)
+class CourseEnrollAPIView(generics.CreateAPIView):
+    queryset = Enrollment.objects.all()
+    serializer_class = EnrollmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-class AddStudentToCourseAPIView(generics.CreateAPIView):
-    serializer_class = StudentEnrollmentSerializer
-
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
         course_id = self.kwargs.get('course_id')
-        serializer.save(course_id=course_id)
+        user = self.request.user
 
-    def post(self, request, *args, **kwargs):
-        course_id = kwargs.get('course_id')
-        return self.create(request, *args, **kwargs)
+        # Check if the course exists
+        try:
+            course = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            return Response({"error": "Course not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if the user is already enrolled
+        if Enrollment.objects.filter(user=user, course=course).exists():
+            return Response({"error": "You are already enrolled in this course"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create the enrollment
+        enrollment = Enrollment.objects.create(user=user, course=course)
+        serializer = self.get_serializer(enrollment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class EnrollmentListAPIView(generics.ListAPIView):
+    serializer_class = EnrollmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Enrollment.objects.filter(user=self.request.user)
+
+
+class TakeCourseAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, course_id, *args, **kwargs):
+        course = Course.objects.get(id=course_id)
+        user = request.user
+
+        if course.course_type == 'mooc':
+            if Enrollment.objects.filter(user=user, course=course).exists():
+                return Response({'detail': 'You are already enrolled in this course.'}, status=status.HTTP_400_BAD_REQUEST)
+            enrollment = Enrollment.objects.create(user=user, course=course)
+            serializer = EnrollmentSerializer(enrollment)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response({'detail': 'Cannot self-enroll in SPOC courses.'}, status=status.HTTP_403_FORBIDDEN)
+
+class AssignUsersToSPOCAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, course_id, *args, **kwargs):
+        course = Course.objects.get(id=course_id)
+        if course.teacher != request.user:
+            return Response({'detail': 'Only the course creator can assign users to this course.'}, status=status.HTTP_403_FORBIDDEN)
+        emails = request.data.get('emails', [])
+        assigned_users = []
+        for email in emails:
+            try:
+                user = User.objects.get(email=email)
+                if not Enrollment.objects.filter(user=user, course=course).exists():
+                    enrollment = Enrollment.objects.create(user=user, course=course)
+                    assigned_users.append(user.email)
+            except User.DoesNotExist:
+                # Handle the case where the user does not exist
+                # Maybe create a placeholder enrollment or send an invitation
+                pass
+        return Response({'assigned_users': assigned_users}, status=status.HTTP_201_CREATED)
+    
+class UploadExcelAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, course_id, *args, **kwargs):
+        course = Course.objects.get(id=course_id)
+        if course.teacher != request.user:
+            return Response({'detail': 'Only the course creator can assign users to this course.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'detail': 'No file uploaded.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            df = pd.read_excel(file)
+            emails = df['Email'].tolist()
+            return self.assign_users_to_course(emails, course)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def assign_users_to_course(self, emails, course):
+        assigned_users = []
+        for email in emails:
+            try:
+                user = User.objects.get(email=email)
+                if not Enrollment.objects.filter(user=user, course=course).exists():
+                    enrollment = Enrollment.objects.create(user=user, course=course)
+                    assigned_users.append(user.email)
+            except User.DoesNotExist:
+                # Handle the case where the user does not exist
+                # Maybe create a placeholder enrollment or send an invitation
+                pass
+        return Response({'assigned_users': assigned_users}, status=status.HTTP_201_CREATED)

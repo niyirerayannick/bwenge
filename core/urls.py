@@ -2,10 +2,10 @@
 
 from django.urls import path
 from . import views
-from .views import (AddStudentToCourseAPIView, ArticleCreateAPIView, ArticleListAPIView, CreateVideoAPIView, MyArticlesView, MyCoursesView, MyProjectsView, MyStatisticsView, ProjectDetailView, ProjectListView,
+from .views import (ArticleCreateAPIView, ArticleListAPIView, AssignUsersToSPOCAPIView, CourseEnrollAPIView, CreateVideoAPIView, JoinCommunityView, MyArticlesView, MyCoursesView, MyProjectsView, MyStatisticsView, ProjectDetailView, ProjectListView,
           SingleArticleAPIView, CategoryCreateAPIView, SingleCategoryAPIView, 
           CreateCommentAPIView,
-          SingleCommentAPIView, SingleVideoAPIView, VideoListAPIView,AssignmentCreateAPIView, 
+          SingleCommentAPIView, SingleVideoAPIView, UploadExcelAPIView, VideoListAPIView,AssignmentCreateAPIView, 
           AssignmentDetailAPIView, AssignmentListAPIView, ChapterCreateAPIView, ChapterDetailAPIView, 
           ChapterListAPIView, ChoiceCreateAPIView,ChoiceDetailAPIView, ChoiceListAPIView, CourseCreateAPIView, 
           CourseListAPIView, CourseDetailAPIView, LectureCreateAPIView,LectureDetailAPIView, LectureListAPIView,
@@ -36,6 +36,7 @@ urlpatterns = [
     path('communities/', views.CommunityList.as_view(), name='community-list'),
     path('communities/create/', views.CommunityCreate.as_view(), name='community-create'),
     path('communities/<int:pk>/', views.CommunityDetail.as_view(), name='community-detail'),
+    path('communities/<int:pk>/join/', JoinCommunityView.as_view(), name='community-join'),
     #All for single user
     path('my-communities/', mycommunuties.as_view(), name='my-communities'),
     path('my-articles/', MyArticlesView.as_view(), name='my-articles'),
@@ -56,6 +57,9 @@ urlpatterns = [
     path('courses/', CourseListAPIView.as_view(), name='course-list'),
     path('courses/create/', CourseCreateAPIView.as_view(), name='course-create'),
     path('courses/<int:pk>/', CourseDetailAPIView.as_view(), name='course-detail'),
+    path('courses/<int:course_id>/take/', CourseEnrollAPIView.as_view(), name='course-enroll'),
+    path('courses/<int:course_id>/assign/', AssignUsersToSPOCAPIView.as_view(), name='assign-users-to-spoc'),
+    path('courses/<int:course_id>/upload_excel/', UploadExcelAPIView.as_view(), name='upload-excel'),
     ##Chapeter
     path('chapters/', ChapterListAPIView.as_view(), name='chapter-list'),
     path('course/<int:course_id>/chapters/create/', ChapterCreateAPIView.as_view(), name='chapter-create'),
@@ -88,11 +92,6 @@ urlpatterns = [
     path('projects/', ProjectListView.as_view(), name='project-list'),
     path('projects/<int:pk>/', ProjectDetailView.as_view(), name='project-detail'),
     path('projects/create/', ProjectCreateView.as_view(), name='project-create'),
+    
 
-
-##special for quiz
-#     path('quiz/<int:quiz_id>/', QuizAPIView.as_view(), name='quiz-detail'),
-#     path('question/<int:question_id>/', QuestionAPIView.as_view(), name='question-detail'),
-
-    path('course/<int:course_id>/add_student/', AddStudentToCourseAPIView.as_view(), name='add_student_to_course'),
 ]

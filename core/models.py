@@ -117,9 +117,7 @@ class Reply(models.Model):
 
 class Institution(models.Model):
     name = models.CharField(max_length=100)
-    telephone = models.CharField(max_length=15, unique=True, verbose_name=("Telephone"))
     logo = models.ImageField(upload_to='institution_logos/')
-    email = models.EmailField(unique=True)
 
     def __str__(self):
         return self.name
@@ -144,7 +142,7 @@ class Project(models.Model):
     submitted_date = models.DateTimeField(auto_now_add=True)
     total_downloads = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-    institution = models.CharField(max_length=100) #CORRECT THIS BY CONNETING
+    institution = models.ForeignKey(Institution, null=True, on_delete=models.SET_NULL) #CORRECT THIS BY CONNETING
     is_approved = models.BooleanField(default=True)
 
     def __str__(self):
@@ -160,7 +158,7 @@ class Course(models.Model):
     course_image = models.ImageField(upload_to='media/course/posters/')
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     is_approved = models.BooleanField(default=True)
-    course_type = models.CharField(max_length=20, choices=COURSE_TYPE_CHOICES, default='regular')
+    course_type = models.CharField(max_length=20, choices=COURSE_TYPE_CHOICES, default='mooc')
 
     def __str__(self):
         return self.title
@@ -222,11 +220,10 @@ class Submission(models.Model):
     # def __str__(self):
     #     return self.student
 
-
-class StudentCourse(models.Model):
-    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+class Enrollment(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, related_name='enrollments', on_delete=models.CASCADE)
     enrolled_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.student.get_full_name()} - {self.course.title}"
+        return f"{self.user} enrolled in {self.course.title}"

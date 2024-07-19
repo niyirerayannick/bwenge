@@ -1,6 +1,7 @@
+import logging
 from rest_framework import serializers
 from accounts.models import User
-from .models import (Article, Comment, Category, Institution, StudentCourse, Video,Community, CommunityCategory,Post, Reply, 
+from .models import (Article, Comment, Category, Enrollment,Video,Community, CommunityCategory,Post, Reply, 
 Assignment, Choice, Course, Chapter, Lecture, Question, Quiz, Submission, Project)
 from django.contrib.auth import get_user_model 
 User = get_user_model()
@@ -57,19 +58,34 @@ class CommunitySerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         categories_data = validated_data.pop('categories', [])
         community = Community.objects.create(**validated_data)
+        members_data = validated_data.pop('members', [])
         community.categories.set(categories_data)
+        community.members.set(members_data)
         return community
 
     def update(self, instance, validated_data):
         categories_data = validated_data.pop('categories', None)
+        members_data = validated_data.pop('members', None)
         
         instance = super().update(instance, validated_data)
         
         if categories_data is not None:
             instance.categories.set(categories_data)
+        if members_data is not None:
+            instance.members.set(members_data)
 
         return instance
-       
+    
+class JoinCommunitySerializer(serializers.Serializer):
+    community_id = serializers.IntegerField()
+
+    def validate_community_id(self, value):
+        try:
+            Community.objects.get(id=value)
+        except Community.DoesNotExist:
+            raise serializers.ValidationError("Community not found.")
+        return value   
+    
 
 class VideoSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
@@ -112,10 +128,11 @@ class ChapterSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     chapters = ChapterSerializer(many=True, read_only=True)
     course_type = serializers.CharField(source='get_course_type_display', read_only=True)
+    enrollments = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'course_image', 'chapters', 'teacher', 'is_approved', 'course_type']
+        fields = ['id', 'title', 'description', 'course_image', 'chapters', 'teacher', 'is_approved', 'course_type','enrollments']
 
     def create(self, validated_data):
         # Set the default course type to 'mooc' if not provided
@@ -155,31 +172,7 @@ class AssignmentSerializer(serializers.ModelSerializer):
         model = Assignment
         fields = ['id', 'title', 'description', 'due_date', 'submissions']
 
-
-class StudentEnrollmentSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-
-    def validate_email(self, value):
-        try:
-            user = User.objects.get(email=value)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("User with this email does not exist.")
-
-        return value
-
-    def create(self, validated_data):
-        # Retrieve course_id from context or validated_data
-        course_id = self.context.get('course_id')  # Ensure to handle context properly
-
-        # Retrieve the course object
-        course = Course.objects.get(id=course_id)
-
-        # Check if the student is already enrolled
-        if course.enrollments.filter(student__email=validated_data['email']).exists():
-            raise serializers.ValidationError("Student is already enrolled in this course.")
-
-        # Enroll the student in the course
-        student = User.objects.get(email=validated_data['email'])
-        student_course = StudentCourse.objects.create(student=student, course=course)
-
-        return student_course
+class EnrollmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enrollment
+        fields = ['id', 'user', 'course', 'enrolled_at']
