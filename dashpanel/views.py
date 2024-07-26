@@ -1,12 +1,23 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from accounts.models import Profile, User, UserRolePermissions
-from core.models import Category, Video, Article
+from core.models import Category, Course, PendingEnrollment, Video, Article
 from django.db.models import Sum
 from rest_framework import status
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
+@login_required
+def custom_dashboard(request):
+    # Add any data you need for the dashboard
+    context = {
+        'user_count': User.objects.count(),
+        'course_count': Course.objects.count(),
+        'pending_enrollments': PendingEnrollment.objects.count(),
+        'recent_articles': Article.objects.order_by('-date')[:5],
+        # Add more context data as needed
+    }
+    return render(request, 'admin/dashboard.html', context)
 # @login_required
 def dashboard(request):
     

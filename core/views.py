@@ -1,8 +1,12 @@
 # views.py
 from turtle import pd
+import openpyxl
+from rest_framework import status
 import logging
-
+from django.apps import apps
+from django.conf import settings
 from accounts.models import User
+from accounts.utils import send_course_assignment_email
 logger = logging.getLogger(__name__)
 from rest_framework.views import APIView
 from rest_framework import generics, permissions
@@ -10,11 +14,12 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import generics,status
-from .models import (Article, Comment,Category, Community, Enrollment, Post, Reply,Video,Project,
+from .models import (Article, Comment,Category, Community, CommunityCategory, Enrollment, PendingEnrollment, Post, Reply,Video,Project,
                      Assignment, Chapter, Choice, Course, Lecture, Question, Quiz, Submission,
                      Quiz, Question, Choice)
-from .serializers import (ArticleSerializer, CategorySerializer, CommentSerializer, 
-                          CommunitySerializer, EnrollmentSerializer, JoinCommunitySerializer, PostSerializer, ReplySerializer, ProjectSerializer,
+from .serializers import (ArticleSerializer, CategorySerializer, CommentSerializer, CommunityCategorySerializer, 
+                          CommunitySerializer, EmailAssignmentSerializer, EnrollmentSerializer, JoinCommunitySerializer,
+                            PostSerializer, ReplySerializer, ProjectSerializer, TakeQuizSerializer, UploadExcelSerializer,
                           VideoSerializer,CourseSerializer,AssignmentSerializer, ChapterSerializer,
                             ChoiceSerializer, CourseSerializer,LectureSerializer, QuestionSerializer,
                               QuizSerializer, SubmissionSerializer,QuizSerializer, QuestionSerializer)
@@ -45,7 +50,7 @@ class SingleArticleAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.views += 1  # Increment views count
+        instance.views += 1  #increment views count
         instance.save()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -111,6 +116,11 @@ class JoinCommunityView(APIView):
             return Response({'detail': 'Joined community successfully.'}, status=status.HTTP_204_NO_CONTENT)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Commu_categoryCreateAPIView(generics.ListCreateAPIView):
+    queryset = CommunityCategory.objects.all()
+    serializer_class = CommunityCategorySerializer
+
 ########################################-MY community-######################################################
 
 class mycommunuties(APIView):
@@ -263,6 +273,23 @@ class QuizDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
 
+class TakeQuizView(generics.CreateAPIView):
+    serializer_class = TakeQuizSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        quiz_id = kwargs.get('quiz_id')
+        
+        # Ensure the quiz exists
+        try:
+            quiz = Quiz.objects.get(id=quiz_id)
+        except Quiz.DoesNotExist:
+            return Response({'error': 'Quiz not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save()
+        return Response(result, status=status.HTTP_201_CREATED)
 ##questions
     
 class QuestionCreateAPIView(generics.CreateAPIView):
@@ -397,55 +424,81 @@ class TakeCourseAPIView(APIView):
         return Response({'detail': 'Cannot self-enroll in SPOC courses.'}, status=status.HTTP_403_FORBIDDEN)
 
 class AssignUsersToSPOCAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    def post(self, request, course_id):
+        serializer = EmailAssignmentSerializer(data=request.data)
+        if serializer.is_valid():
+            emails = serializer.validated_data['emails']
+            course = Course.objects.get(id=course_id)  # Get the course instance
+            already_assigned_emails = []
+            newly_assigned_emails = []
+            
+            User = apps.get_model(settings.AUTH_USER_MODEL)  # Get the actual user model
+            
+            for email in emails:
+                user = User.objects.filter(email=email).first()  # Check if the user exists
+                if user:
+                    if Enrollment.objects.filter(user=user, course=course).exists():
+                        already_assigned_emails.append(email)
+                    else:
+                        # Enroll the existing user in the course
+                        Enrollment.objects.create(user=user, course=course)
+                        newly_assigned_emails.append(email)
+                else:
+                    # Create a pending enrollment record for users who do not exist yet
+                    PendingEnrollment.objects.create(email=email, course=course)
+                    newly_assigned_emails.append(email)
+            
+            response_data = {
+                'already_assigned_emails': already_assigned_emails,
+                'newly_assigned_emails': newly_assigned_emails,
+                'message': 'Courses assigned successfully'
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request, course_id, *args, **kwargs):
-        course = Course.objects.get(id=course_id)
-        if course.teacher != request.user:
-            return Response({'detail': 'Only the course creator can assign users to this course.'}, status=status.HTTP_403_FORBIDDEN)
-        emails = request.data.get('emails', [])
-        assigned_users = []
-        for email in emails:
-            try:
-                user = User.objects.get(email=email)
-                if not Enrollment.objects.filter(user=user, course=course).exists():
-                    enrollment = Enrollment.objects.create(user=user, course=course)
-                    assigned_users.append(user.email)
-            except User.DoesNotExist:
-                # Handle the case where the user does not exist
-                # Maybe create a placeholder enrollment or send an invitation
-                pass
-        return Response({'assigned_users': assigned_users}, status=status.HTTP_201_CREATED)
-    
 class UploadExcelAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, course_id, *args, **kwargs):
-        course = Course.objects.get(id=course_id)
-        if course.teacher != request.user:
-            return Response({'detail': 'Only the course creator can assign users to this course.'}, status=status.HTTP_403_FORBIDDEN)
-        
-        file = request.FILES.get('file')
-        if not file:
-            return Response({'detail': 'No file uploaded.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            df = pd.read_excel(file)
-            emails = df['Email'].tolist()
-            return self.assign_users_to_course(emails, course)
-        except Exception as e:
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
-    def assign_users_to_course(self, emails, course):
-        assigned_users = []
-        for email in emails:
+    def post(self, request, course_id):
+        serializer = UploadExcelSerializer(data=request.data)
+        if serializer.is_valid():
+            excel_file = serializer.validated_data['file']
+            
             try:
-                user = User.objects.get(email=email)
-                if not Enrollment.objects.filter(user=user, course=course).exists():
-                    enrollment = Enrollment.objects.create(user=user, course=course)
-                    assigned_users.append(user.email)
-            except User.DoesNotExist:
-                # Handle the case where the user does not exist
-                # Maybe create a placeholder enrollment or send an invitation
-                pass
-        return Response({'assigned_users': assigned_users}, status=status.HTTP_201_CREATED)
+                workbook = openpyxl.load_workbook(excel_file)
+                sheet = workbook.active
+                
+                emails = set()
+                for row in sheet.iter_rows(min_row=2, values_only=True):
+                    email = row[0]
+                    if email:
+                        emails.add(email)
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            
+            course = Course.objects.get(id=course_id)
+            already_assigned_emails = []
+            newly_assigned_emails = []
+            
+            User = apps.get_model(settings.AUTH_USER_MODEL)
+            
+            for email in emails:
+                user = User.objects.filter(email=email).first()
+                if user:
+                    if Enrollment.objects.filter(user=user, course=course).exists():
+                        already_assigned_emails.append(email)
+                    else:
+                        Enrollment.objects.create(user=user, course=course)
+                        newly_assigned_emails.append(email)
+                        send_course_assignment_email(email, course.title, request)  # Send email to the user
+                else:
+                    PendingEnrollment.objects.create(email=email, course=course)
+                    newly_assigned_emails.append(email)
+            
+            response_data = {
+                'already_assigned_emails': already_assigned_emails,
+                'newly_assigned_emails': newly_assigned_emails,
+                'message': 'Courses assigned and emails attempted'
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -2,7 +2,7 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from .views import ( 
     addArticle, addcategory, articleList,
-    categorylist, dashboard, addVideo, 
+    categorylist, custom_dashboard, dashboard, addVideo, 
     delete_category, delete_user, edit_category, 
     edit_user, video_detail,video_list,
     community_list,user_list,add_user,
@@ -16,6 +16,9 @@ from .views import (
 )
 
 urlpatterns = [
+    path('admin/dashboard/', custom_dashboard, name='admin_dashboard'),
+
+    
     path('', dashboard, name='dashboard'),
     path('login', adminlogin, name='adminlogin'),
     path('forget-password', forgot_password , name='forget-password'),

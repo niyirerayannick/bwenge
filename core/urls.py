@@ -5,7 +5,7 @@ from . import views
 from .views import (ArticleCreateAPIView, ArticleListAPIView, AssignUsersToSPOCAPIView, CourseEnrollAPIView, CreateVideoAPIView, JoinCommunityView, MyArticlesView, MyCoursesView, MyProjectsView, MyStatisticsView, ProjectDetailView, ProjectListView,
           SingleArticleAPIView, CategoryCreateAPIView, SingleCategoryAPIView, 
           CreateCommentAPIView,
-          SingleCommentAPIView, SingleVideoAPIView, UploadExcelAPIView, VideoListAPIView,AssignmentCreateAPIView, 
+          SingleCommentAPIView, SingleVideoAPIView, TakeQuizView, UploadExcelAPIView, VideoListAPIView,AssignmentCreateAPIView, 
           AssignmentDetailAPIView, AssignmentListAPIView, ChapterCreateAPIView, ChapterDetailAPIView, 
           ChapterListAPIView, ChoiceCreateAPIView,ChoiceDetailAPIView, ChoiceListAPIView, CourseCreateAPIView, 
           CourseListAPIView, CourseDetailAPIView, LectureCreateAPIView,LectureDetailAPIView, LectureListAPIView,
@@ -36,6 +36,7 @@ urlpatterns = [
     path('communities/', views.CommunityList.as_view(), name='community-list'),
     path('communities/create/', views.CommunityCreate.as_view(), name='community-create'),
     path('communities/<int:pk>/', views.CommunityDetail.as_view(), name='community-detail'),
+    path('communities/categories', views.Commu_categoryCreateAPIView.as_view(), name='community-categories-list'),
     path('communities/<int:pk>/join/', JoinCommunityView.as_view(), name='community-join'),
     #All for single user
     path('my-communities/', mycommunuties.as_view(), name='my-communities'),
@@ -72,6 +73,7 @@ urlpatterns = [
     path('quizzes/', QuizListAPIView.as_view(), name='quiz-list'),
     path('courses/<int:course_id>/quizzes/create/', QuizCreateAPIView.as_view(), name='quiz-create'),
     path('quiz/<int:pk>/', QuizDetailAPIView.as_view(), name='quiz-detail'),
+    path('quizzes/<int:quiz_id>/take/', TakeQuizView.as_view(), name='take-quiz'),
     ##questions
     path('questions/', QuestionListAPIView.as_view(), name='question-list'),
     path('quizzes/<int:quiz_id>/questions/create/', QuestionCreateAPIView.as_view(), name='question-create'),

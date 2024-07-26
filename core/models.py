@@ -227,3 +227,20 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f"{self.user} enrolled in {self.course.title}"
+    
+class PendingEnrollment(models.Model):
+    email = models.EmailField()
+    course = models.ForeignKey(Course, related_name='pending_enrollments', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Pending enrollment for {self.email} in {self.course.title}"
+
+class UserAnswer(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    selected_choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+    is_correct = models.BooleanField()
+
+    class Meta:
+        unique_together = ('user', 'question')
