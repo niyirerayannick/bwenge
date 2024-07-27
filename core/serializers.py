@@ -229,26 +229,24 @@ class TakeQuizSerializer(serializers.Serializer):
             'total_questions': total_questions,
             'correct_answers': correct_count
         }
-
-class SubmissionSerializer(serializers.ModelSerializer):
-    assignment = serializers.PrimaryKeyRelatedField(queryset=Assignment.objects.all())  # Use PrimaryKeyRelatedField for assignment
-    student = serializers.SlugRelatedField(slug_field='email', queryset=get_user_model().objects.all())
-
-    class Meta:
-        model = Submission
-        fields = ['id', 'assignment', 'student', 'file', 'submitted_at']
-
+# AssignmentSerializer to serialize assignment details
 class AssignmentSerializer(serializers.ModelSerializer):
-    course = CourseSerializer(read_only=True)  # Nested CourseSerializer
-    submissions = SubmissionSerializer(many=True, read_only=True)  # Use SubmissionSerializer for submissions
+    course = CourseSerializer(read_only=True)
+    submissions = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Assignment
         fields = ['id', 'title', 'description', 'due_date', 'course', 'submissions']
 
-    def create(self, validated_data):
-        # We do not include 'course' here because it will be set in the view
-        return super().create(validated_data)
+# SubmissionSerializer to serialize submission details
+class SubmissionSerializer(serializers.ModelSerializer):
+    assignment = AssignmentSerializer(read_only=True)  # Nested AssignmentSerializer
+    student = UserSerializer(read_only=True)  # Nested UserSerializer
+
+    class Meta:
+        model = Submission
+        fields = ['id', 'assignment', 'student', 'file', 'submitted_at']
+
 
 class UploadExcelSerializer(serializers.Serializer):
     file = serializers.FileField()
