@@ -275,7 +275,7 @@ class QuizDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 class TakeQuizView(generics.CreateAPIView):
     serializer_class = TakeQuizSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         quiz_id = kwargs.get('quiz_id')
@@ -405,7 +405,6 @@ class EnrollmentListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         return Enrollment.objects.filter(user=self.request.user)
-
 
 class TakeCourseAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
