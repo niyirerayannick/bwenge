@@ -1,11 +1,10 @@
-import logging
 from rest_framework import serializers
 from accounts.models import User
-from .models import (Article, Comment, Category, Enrollment, UserAnswer,Video,Community, CommunityCategory,Post, Reply, 
+from .models import (Article, Comment, Category, Enrollment, UserAnswer, Video, Community, CommunityCategory, Post, Reply, 
 Assignment, Choice, Course, Chapter, Lecture, Question, Quiz, Submission, Project)
 from django.contrib.auth import get_user_model 
-User = get_user_model()
 
+User = get_user_model()
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,8 +15,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         return Project.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance = super().update(instance, validated_data)
-        return instance
+        return super().update(instance, validated_data)
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,54 +30,51 @@ class CategorySerializer(serializers.ModelSerializer):
 class ArticleSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     categories = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), many=True, required=True)
-   
 
     class Meta:
         model = Article
         fields = ['id', 'title', 'poster_image', 'description', 'categories', 'likes', 'views', 'author', 'date', 'comments']
-        
 
     def create(self, validated_data):
-        categories_data = validated_data.pop('categories', None)
+        categories_data = validated_data.pop('categories', [])
         article = Article.objects.create(**validated_data)
-        if categories_data:
-            for category in categories_data:
-                article.categories.add(category)
+        article.categories.set(categories_data)
         return article
+
 class CommunityCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityCategory
         fields = ['id', 'name']
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name'] # Ensure these fields exist in your User model
+
 class CommunitySerializer(serializers.ModelSerializer):
-    categories = serializers.PrimaryKeyRelatedField(queryset=CommunityCategory.objects.all(), many=True, required=False)
+    categories = CommunityCategorySerializer(many=True, read_only=True)
+    members = UserSerializer(many=True, read_only=True)  # Display members
+    created_date = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Community
-        fields = ['id', 'name', 'description', 'poster_image', 'admin', 'created_date', 'categories']
+        fields = ['id', 'name', 'description', 'poster_image', 'admin', 'created_date', 'categories', 'members']
 
     def create(self, validated_data):
-        request = self.context.get('request')
         categories_data = validated_data.pop('categories', [])
         community = Community.objects.create(**validated_data)
-        members_data = validated_data.pop('members', [])
         community.categories.set(categories_data)
-        community.members.set(members_data)
         return community
 
     def update(self, instance, validated_data):
         categories_data = validated_data.pop('categories', None)
-        members_data = validated_data.pop('members', None)
-        
         instance = super().update(instance, validated_data)
         
         if categories_data is not None:
             instance.categories.set(categories_data)
-        if members_data is not None:
-            instance.members.set(members_data)
 
         return instance
-    
+
 class JoinCommunitySerializer(serializers.Serializer):
     community_id = serializers.IntegerField()
 
@@ -87,9 +82,7 @@ class JoinCommunitySerializer(serializers.Serializer):
         """
         Validate if the community exists.
         """
-        try:
-            Community.objects.get(id=value)
-        except Community.DoesNotExist:
+        if not Community.objects.filter(id=value).exists():
             raise serializers.ValidationError("Community not found.")
         return value
 
@@ -102,20 +95,17 @@ class JoinCommunitySerializer(serializers.Serializer):
         community.members.add(user)
         return community
 
-
 class VideoSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
+    
     class Meta:
         model = Video
-        fields = ['id', 'title', 'poster_image','video_file', 'description', 'likes', 'categories', 'views', 'author', 'date','comments']
-        
+        fields = ['id', 'title', 'poster_image', 'video_file', 'description', 'likes', 'categories', 'views', 'author', 'date', 'comments']
 
     def create(self, validated_data):
-        video_data = validated_data.pop('vides', None)
+        categories_data = validated_data.pop('categories', [])
         video = Video.objects.create(**validated_data)
-        if video_data:
-            for video in video_data:
-                video.categories.add(video)
+        video.categories.set(categories_data)
         return video
 
 class PostSerializer(serializers.ModelSerializer):
@@ -127,7 +117,6 @@ class ReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = Reply
         fields = '__all__'
-
 
 class LectureSerializer(serializers.ModelSerializer):
     class Meta:
@@ -144,7 +133,7 @@ class ChapterSerializer(serializers.ModelSerializer):
 class EnrollmentSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='user.id', read_only=True)
     user_email = serializers.EmailField(source='user.email', read_only=True)
-    user_name = serializers.CharField(source='user.get_full_name', read_only=True)  # or adjust as needed
+    user_name = serializers.CharField(source='user.get_full_name', read_only=True)  # Adjust if needed
 
     class Meta:
         model = Enrollment
@@ -161,7 +150,6 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'description', 'course_image', 'chapters', 'teacher', 'is_approved', 'course_type', 'enrollments', 'is_approved_status']
 
     def create(self, validated_data):
-        # Set the default course type to 'mooc' if not provided
         course_type = self.initial_data.get('course_type', 'mooc')
         validated_data['course_type'] = course_type
         return super().create(validated_data)
@@ -199,13 +187,11 @@ class TakeQuizSerializer(serializers.Serializer):
         answers = data['answers']
         quiz_id = self.context['view'].kwargs.get('quiz_id')
 
-        # Ensure the quiz exists
         try:
             quiz = Quiz.objects.get(id=quiz_id)
         except Quiz.DoesNotExist:
             raise serializers.ValidationError("Quiz not found.")
 
-        # Ensure all questions belong to the specified quiz
         question_ids = set(quiz.questions.values_list('id', flat=True))
         for answer in answers:
             question_id = answer['question'].id
@@ -219,7 +205,6 @@ class TakeQuizSerializer(serializers.Serializer):
         answers = validated_data['answers']
         user = self.context['request'].user
 
-        # Process user answers and calculate score
         correct_count = 0
         total_questions = len(answers)
         user_answers = []
@@ -229,7 +214,6 @@ class TakeQuizSerializer(serializers.Serializer):
             selected_choice = answer['selected_choice']
             is_correct = selected_choice.is_correct
 
-            # Check for existing user answer
             user_answer, created = UserAnswer.objects.update_or_create(
                 user=user,
                 question=question,
@@ -251,7 +235,6 @@ class TakeQuizSerializer(serializers.Serializer):
             'correct_answers': correct_count
         }
 
-
 class SubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
@@ -263,7 +246,6 @@ class AssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment
         fields = ['id', 'title', 'description', 'due_date', 'submissions']
-
 
 class UploadExcelSerializer(serializers.Serializer):
     file = serializers.FileField()

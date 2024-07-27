@@ -39,7 +39,7 @@ urlpatterns = [
     path('communities/create/', views.CommunityCreate.as_view(), name='community-create'),
     path('communities/<int:pk>/', views.CommunityDetail.as_view(), name='community-detail'),
     path('communities/categories', views.Commu_categoryCreateAPIView.as_view(), name='community-categories-list'),
-    path('communities/<int:pk>/join/', JoinCommunityView.as_view(), name='community-join'),
+    path('communities/<int:community_id>/join/', JoinCommunityView.as_view(), name='community-join'),
     #All for single user
     path('my-communities/', mycommunuties.as_view(), name='my-communities'),
     path('my-articles/', MyArticlesView.as_view(), name='my-articles'),

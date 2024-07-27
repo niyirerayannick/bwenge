@@ -98,17 +98,39 @@ class CommunityDetail(generics.RetrieveAPIView):
     queryset = Community.objects.all()
     serializer_class = CommunitySerializer
 
+from rest_framework.permissions import AllowAny
 class JoinCommunityView(APIView):
-    def post(self, request, *args, **kwargs):
-        serializer = JoinCommunitySerializer(data=request.data)
-        if serializer.is_valid():
-            user = request.user
-            community = serializer.join_community(user)
-            return Response({
-                'detail': f'Joined community {community.name} successfully.'
-            }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    permission_classes = [AllowAny]  # Adjust if necessary for your authentication needs
 
+    def post(self, request, community_id, format=None):
+        serializer = JoinCommunitySerializer(data={'community_id': community_id})
+        if serializer.is_valid():
+            user = request.user if request.user.is_authenticated else None
+
+            # Check if user is authenticated
+            if user is None:
+                return Response({'error': 'User must be logged in to join a community.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+            # Retrieve the community instance
+            try:
+                community = Community.objects.get(id=community_id)
+            except Community.DoesNotExist:
+                return Response({'error': 'Community not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Check if user is already a member of the community
+            if community.members.filter(id=user.id).exists():
+                return Response({'message': 'You are already a member of this community.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Add user to the community
+            community.members.add(user)
+            
+            return Response({
+                'community_id': community.id,
+                'message': 'Successfully joined the community'
+            }, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class Commu_categoryCreateAPIView(generics.ListCreateAPIView):
     queryset = CommunityCategory.objects.all()
     serializer_class = CommunityCategorySerializer
@@ -363,42 +385,44 @@ class ProjectCreateView(generics.CreateAPIView):
     # def perform_create(self, serializer):
     #     # Automatically set the author to the logged in user during project creation
     #     serializer.save(author=self.request.user)
+
 class CourseEnrollAPIView(generics.CreateAPIView):
     queryset = Enrollment.objects.all()
     serializer_class = EnrollmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow any user, authenticated or not
 
     def create(self, request, *args, **kwargs):
         course_id = self.kwargs.get('course_id')
         user = self.request.user
 
-        # Check if the course exists
         try:
             course = Course.objects.get(id=course_id)
         except Course.DoesNotExist:
             return Response({"error": "Course not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Check if the user is already enrolled
         if Enrollment.objects.filter(user=user, course=course).exists():
             return Response({"error": "You are already enrolled in this course"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Create the enrollment
         enrollment = Enrollment.objects.create(user=user, course=course)
         serializer = self.get_serializer(enrollment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class EnrollmentListAPIView(generics.ListAPIView):
     serializer_class = EnrollmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow any user, authenticated or not
 
     def get_queryset(self):
         return Enrollment.objects.filter(user=self.request.user)
-
+    
 class TakeCourseAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow any user, authenticated or not
 
     def post(self, request, course_id, *args, **kwargs):
-        course = Course.objects.get(id=course_id)
+        try:
+            course = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            return Response({'detail': 'Course not found.'}, status=status.HTTP_404_NOT_FOUND)
+
         user = request.user
 
         if course.course_type == 'mooc':
@@ -407,7 +431,7 @@ class TakeCourseAPIView(APIView):
             enrollment = Enrollment.objects.create(user=user, course=course)
             serializer = EnrollmentSerializer(enrollment)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+
         return Response({'detail': 'Cannot self-enroll in SPOC courses.'}, status=status.HTTP_403_FORBIDDEN)
 
 class AssignUsersToSPOCAPIView(APIView):
