@@ -1,5 +1,4 @@
 # models.py
-
 from django.conf import settings
 from django.db import models
 from django.forms import ValidationError
@@ -240,7 +239,7 @@ class UserAnswer(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     selected_choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
-    is_correct = models.BooleanField()
+    is_correct = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('user', 'question')

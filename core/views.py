@@ -41,8 +41,10 @@ class ArticleCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ArticleSerializer
 
 class ArticleListAPIView(generics.ListAPIView):
-    queryset = Article.objects.all()
     serializer_class = ArticleSerializer
+    def get_queryset(self):
+        # Order articles by 'created_at' field in descending order
+        return Article.objects.all().order_by('-created_at')
 
 class SingleArticleAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Article.objects.all()
@@ -97,24 +99,14 @@ class CommunityDetail(generics.RetrieveAPIView):
     serializer_class = CommunitySerializer
 
 class JoinCommunityView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, pk):
-        serializer = JoinCommunitySerializer(data={'community_id': pk})
+    def post(self, request, *args, **kwargs):
+        serializer = JoinCommunitySerializer(data=request.data)
         if serializer.is_valid():
-            community_id = serializer.validated_data['community_id']
-            try:
-                community = Community.objects.get(pk=community_id)
-            except Community.DoesNotExist:
-                return Response({'detail': 'Community not found.'}, status=status.HTTP_404_NOT_FOUND)
-
             user = request.user
-            if user in community.members.all():
-                return Response({'detail': 'You are already a member of this community.'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            community.members.add(user)
-            return Response({'detail': 'Joined community successfully.'}, status=status.HTTP_204_NO_CONTENT)
-        
+            community = serializer.join_community(user)
+            return Response({
+                'detail': f'Joined community {community.name} successfully.'
+            }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class Commu_categoryCreateAPIView(generics.ListCreateAPIView):
@@ -213,8 +205,11 @@ class CourseCreateAPIView(generics.CreateAPIView):
 
 
 class CourseListAPIView(generics.ListAPIView):
-    queryset = Course.objects.filter(is_approved=True)
     serializer_class = CourseSerializer
+
+    def get_queryset(self):
+        # Order courses by 'id' field in descending order
+        return Course.objects.all().order_by('-id')
 
 class CourseDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
@@ -273,22 +268,15 @@ class QuizDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
 
-class TakeQuizView(generics.CreateAPIView):
+class TakeQuizAPIView(generics.CreateAPIView):
     serializer_class = TakeQuizSerializer
-    # permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        quiz_id = kwargs.get('quiz_id')
-        
-        # Ensure the quiz exists
-        try:
-            quiz = Quiz.objects.get(id=quiz_id)
-        except Quiz.DoesNotExist:
-            return Response({'error': 'Quiz not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = self.get_serializer(data=request.data)
+    def post(self, request, *args, **kwargs):
+        # Pass the quiz_id from URL to the serializer
+        serializer = self.get_serializer(data=request.data, context={'request': request, 'view': self})
         serializer.is_valid(raise_exception=True)
         result = serializer.save()
+
         return Response(result, status=status.HTTP_201_CREATED)
 ##questions
     

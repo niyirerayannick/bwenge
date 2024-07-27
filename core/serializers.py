@@ -84,12 +84,24 @@ class JoinCommunitySerializer(serializers.Serializer):
     community_id = serializers.IntegerField()
 
     def validate_community_id(self, value):
+        """
+        Validate if the community exists.
+        """
         try:
             Community.objects.get(id=value)
         except Community.DoesNotExist:
             raise serializers.ValidationError("Community not found.")
-        return value   
-    
+        return value
+
+    def join_community(self, user):
+        """
+        Add the user to the specified community.
+        """
+        community_id = self.validated_data['community_id']
+        community = Community.objects.get(id=community_id)
+        community.members.add(user)
+        return community
+
 
 class VideoSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
@@ -129,14 +141,24 @@ class ChapterSerializer(serializers.ModelSerializer):
         model = Chapter
         fields = ['id', 'title', 'lectures']
 
+class EnrollmentSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+    user_name = serializers.CharField(source='user.get_full_name', read_only=True)  # or adjust as needed
+
+    class Meta:
+        model = Enrollment
+        fields = ['user_id', 'user_email', 'user_name']
+
 class CourseSerializer(serializers.ModelSerializer):
     chapters = ChapterSerializer(many=True, read_only=True)
     course_type = serializers.CharField(source='get_course_type_display', read_only=True)
-    enrollments = serializers.StringRelatedField(many=True, read_only=True)
+    enrollments = EnrollmentSerializer(many=True, read_only=True)
+    is_approved_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'course_image', 'chapters', 'teacher', 'is_approved', 'course_type','enrollments']
+        fields = ['id', 'title', 'description', 'course_image', 'chapters', 'teacher', 'is_approved', 'course_type', 'enrollments', 'is_approved_status']
 
     def create(self, validated_data):
         # Set the default course type to 'mooc' if not provided
@@ -144,6 +166,8 @@ class CourseSerializer(serializers.ModelSerializer):
         validated_data['course_type'] = course_type
         return super().create(validated_data)
     
+    def get_is_approved_status(self, obj):
+        return "Awaiting approval" if not obj.is_approved else "Approved"
 
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -164,34 +188,34 @@ class QuizSerializer(serializers.ModelSerializer):
         model = Quiz
         fields = ['id', 'title', 'description', 'questions']
 
-class UserAnswerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserAnswer
-        fields = ['question', 'selected_choice']
+class UserAnswerSerializer(serializers.Serializer):
+    question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
+    selected_choice = serializers.PrimaryKeyRelatedField(queryset=Choice.objects.all())
 
 class TakeQuizSerializer(serializers.Serializer):
     answers = UserAnswerSerializer(many=True)
 
     def validate(self, data):
         answers = data['answers']
-        quiz_id = self.context['view'].kwargs['quiz_id']
-        
+        quiz_id = self.context['view'].kwargs.get('quiz_id')
+
         # Ensure the quiz exists
         try:
             quiz = Quiz.objects.get(id=quiz_id)
         except Quiz.DoesNotExist:
             raise serializers.ValidationError("Quiz not found.")
-        
+
         # Ensure all questions belong to the specified quiz
         question_ids = set(quiz.questions.values_list('id', flat=True))
         for answer in answers:
-            if answer['question'].id not in question_ids:
+            question_id = answer['question'].id
+            if question_id not in question_ids:
                 raise serializers.ValidationError("Invalid question in answers.")
-        
+
         return data
 
     def create(self, validated_data):
-        quiz_id = self.context['view'].kwargs['quiz_id']
+        quiz_id = self.context['view'].kwargs.get('quiz_id')
         answers = validated_data['answers']
         user = self.context['request'].user
 
@@ -205,18 +229,19 @@ class TakeQuizSerializer(serializers.Serializer):
             selected_choice = answer['selected_choice']
             is_correct = selected_choice.is_correct
 
-            user_answer = UserAnswer(
+            # Check for existing user answer
+            user_answer, created = UserAnswer.objects.update_or_create(
                 user=user,
                 question=question,
-                selected_choice=selected_choice,
-                is_correct=is_correct
+                defaults={
+                    'selected_choice': selected_choice,
+                    'is_correct': is_correct
+                }
             )
-            user_answers.append(user_answer)
-            
+
             if is_correct:
                 correct_count += 1
 
-        UserAnswer.objects.bulk_create(user_answers)
         score = (correct_count / total_questions) * 100
 
         return {
@@ -225,6 +250,7 @@ class TakeQuizSerializer(serializers.Serializer):
             'total_questions': total_questions,
             'correct_answers': correct_count
         }
+
 
 class SubmissionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -238,10 +264,6 @@ class AssignmentSerializer(serializers.ModelSerializer):
         model = Assignment
         fields = ['id', 'title', 'description', 'due_date', 'submissions']
 
-class EnrollmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Enrollment
-        fields = ['id', 'user', 'course', 'enrolled_at']
 
 class UploadExcelSerializer(serializers.Serializer):
     file = serializers.FileField()
