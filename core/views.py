@@ -366,15 +366,6 @@ class SubmissionListAPIView(generics.ListAPIView):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
 
-    def get_queryset(self):
-        """
-        Optionally restricts the returned submissions to the submissions related to the
-        currently authenticated user.
-        """
-        queryset = super().get_queryset()
-        user = self.request.user
-        # Optionally filter by user or other criteria
-        return queryset.filter(student=user)
 
 
 class SubmissionDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
