@@ -358,13 +358,39 @@ class SubmissionCreateAPIView(generics.CreateAPIView):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
 
+    def create(self, request, *args, **kwargs):
+        # Perform custom validation or processing here if needed
+        return super().create(request, *args, **kwargs)
+
 class SubmissionListAPIView(generics.ListAPIView):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
 
+    def get_queryset(self):
+        """
+        Optionally restricts the returned submissions to the submissions related to the
+        currently authenticated user.
+        """
+        queryset = super().get_queryset()
+        user = self.request.user
+        # Optionally filter by user or other criteria
+        return queryset.filter(student=user)
+
+
 class SubmissionDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
+
+    def get_object(self):
+        """
+        Optionally restrict the returned submission to the submissions related to the
+        currently authenticated user.
+        """
+        obj = super().get_object()
+        if obj.student != self.request.user:
+            self.permission_denied(self.request)
+        return obj
+
 
 
 class ProjectListView(generics.ListAPIView):
