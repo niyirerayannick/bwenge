@@ -164,11 +164,12 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = ['id', 'text', 'choices']
 
 class QuizSerializer(serializers.ModelSerializer):
+    course = CourseSerializer(read_only=True)  # Nested CourseSerializer
     questions = QuestionSerializer(many=True, read_only=True)
 
     class Meta:
         model = Quiz
-        fields = ['id', 'title', 'description', 'questions']
+        fields = ['id', 'title', 'description', 'questions','course']
 
 class UserAnswerSerializer(serializers.Serializer):
     question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
