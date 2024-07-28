@@ -198,7 +198,7 @@ class TakeQuizSerializer(serializers.Serializer):
     def create(self, validated_data):
         quiz_id = self.context['view'].kwargs.get('quiz_id')
         answers = validated_data['answers']
-        user_id = self.context.get('user_id')
+        user_id = self.context['user_id']
 
         if user_id is None:
             raise serializers.ValidationError("User must be authenticated to take a quiz.")
@@ -249,6 +249,29 @@ class SubmissionSerializer(serializers.ModelSerializer):
         model = Submission
         fields = ['id', 'assignment', 'student', 'file', 'submitted_at']
 
+    def create(self, validated_data):
+        user_id = self.context.get('user_id')
+        assignment_id = self.context.get('assignment_id')  # Assume assignment_id is passed in context
+
+        if user_id is None:
+            raise serializers.ValidationError("User must be authenticated to make a submission.")
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User not found.")
+
+        try:
+            assignment = Assignment.objects.get(id=assignment_id)
+        except Assignment.DoesNotExist:
+            raise serializers.ValidationError("Assignment not found.")
+
+        submission = Submission.objects.create(
+            student=user,
+            assignment=assignment,
+            file=validated_data.get('file')
+        )
+        return submission
 
 class UploadExcelSerializer(serializers.Serializer):
     file = serializers.FileField()

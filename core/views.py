@@ -1,5 +1,6 @@
 # views.py
 from turtle import pd
+from django.shortcuts import get_object_or_404
 import openpyxl
 from rest_framework import status
 import logging
@@ -290,19 +291,28 @@ class QuizDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
 
-
 class TakeQuizAPIView(generics.CreateAPIView):
     serializer_class = TakeQuizSerializer
 
     def post(self, request, *args, **kwargs):
-        user = request.user
+        quiz_id = self.kwargs.get('quiz_id')
+        user_id = request.data.get('user_id')
 
-        # Check if user is authenticated
-        if user.is_anonymous:
-            return Response({'detail': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not user_id:
+            return Response({"error": "User ID not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Pass the quiz_id and user ID to the serializer
-        serializer = self.get_serializer(data=request.data, context={'request': request, 'view': self, 'user_id': user.id})
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            quiz = Quiz.objects.get(id=quiz_id)
+        except Quiz.DoesNotExist:
+            return Response({"error": "Quiz not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Pass the user and quiz to the serializer
+        serializer = self.get_serializer(data=request.data, context={'request': request, 'quiz': quiz, 'user': user})
         serializer.is_valid(raise_exception=True)
         result = serializer.save()
 
@@ -366,8 +376,22 @@ class SubmissionCreateAPIView(generics.CreateAPIView):
     serializer_class = SubmissionSerializer
 
     def create(self, request, *args, **kwargs):
-        # Perform custom validation or processing here if needed
-        return super().create(request, *args, **kwargs)
+        user_id = request.data.get('user_id')
+
+        if not user_id:
+            return Response({"error": "User ID not provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Pass the user to the serializer context
+        serializer = self.get_serializer(data=request.data, context={'user_id': user.id, 'view': self})
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class SubmissionListAPIView(generics.ListAPIView):
     queryset = Submission.objects.all()
@@ -413,11 +437,18 @@ class ProjectCreateView(generics.CreateAPIView):
 class CourseEnrollAPIView(generics.CreateAPIView):
     queryset = Enrollment.objects.all()
     serializer_class = EnrollmentSerializer
-    permission_classes = [permissions.AllowAny]  # Allow any user, authenticated or not
 
     def create(self, request, *args, **kwargs):
         course_id = self.kwargs.get('course_id')
-        user = self.request.user
+        user_id = request.data.get('user_id')
+
+        if not user_id:
+            return Response({"error": "User ID not provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             course = Course.objects.get(id=course_id)
@@ -430,7 +461,6 @@ class CourseEnrollAPIView(generics.CreateAPIView):
         enrollment = Enrollment.objects.create(user=user, course=course)
         serializer = self.get_serializer(enrollment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
 class EnrollmentListAPIView(generics.ListAPIView):
     serializer_class = EnrollmentSerializer
     permission_classes = [permissions.AllowAny]  # Allow any user, authenticated or not
