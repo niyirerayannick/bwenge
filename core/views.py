@@ -377,6 +377,7 @@ class SubmissionCreateAPIView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         user_id = request.data.get('user_id')
+        assignment_id = request.data.get('assignment_id')
 
         if not user_id:
             return Response({"error": "User ID not provided"}, status=status.HTTP_400_BAD_REQUEST)
@@ -386,8 +387,13 @@ class SubmissionCreateAPIView(generics.CreateAPIView):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Pass the user to the serializer context
-        serializer = self.get_serializer(data=request.data, context={'user_id': user.id, 'view': self})
+        try:
+            assignment = Assignment.objects.get(id=assignment_id)
+        except Assignment.DoesNotExist:
+            return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Pass the user and assignment to the serializer context
+        serializer = self.get_serializer(data=request.data, context={'user_id': user.id, 'assignment_id': assignment.id, 'view': self})
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
@@ -396,7 +402,6 @@ class SubmissionCreateAPIView(generics.CreateAPIView):
 class SubmissionListAPIView(generics.ListAPIView):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
-
 
 
 class SubmissionDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
