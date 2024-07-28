@@ -198,11 +198,13 @@ class TakeQuizSerializer(serializers.Serializer):
     def create(self, validated_data):
         quiz_id = self.context['view'].kwargs.get('quiz_id')
         answers = validated_data['answers']
-        user = self.context['request'].user
+        user_id = self.context.get('user_id')
+
+        if user_id is None:
+            raise serializers.ValidationError("User must be authenticated to take a quiz.")
 
         correct_count = 0
         total_questions = len(answers)
-        user_answers = []
 
         for answer in answers:
             question = answer['question']
@@ -210,7 +212,7 @@ class TakeQuizSerializer(serializers.Serializer):
             is_correct = selected_choice.is_correct
 
             user_answer, created = UserAnswer.objects.update_or_create(
-                user=user,
+                user_id=user_id,
                 question=question,
                 defaults={
                     'selected_choice': selected_choice,
@@ -229,7 +231,7 @@ class TakeQuizSerializer(serializers.Serializer):
             'total_questions': total_questions,
             'correct_answers': correct_count
         }
-# AssignmentSerializer to serialize assignment details
+
 class AssignmentSerializer(serializers.ModelSerializer):
     course = CourseSerializer(read_only=True)
     submissions = serializers.PrimaryKeyRelatedField(many=True, read_only=True)

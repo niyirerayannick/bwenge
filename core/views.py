@@ -290,12 +290,19 @@ class QuizDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
 
+
 class TakeQuizAPIView(generics.CreateAPIView):
     serializer_class = TakeQuizSerializer
 
     def post(self, request, *args, **kwargs):
-        # Pass the quiz_id from URL to the serializer
-        serializer = self.get_serializer(data=request.data, context={'request': request, 'view': self})
+        user = request.user
+
+        # Check if user is authenticated
+        if user.is_anonymous:
+            return Response({'detail': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Pass the quiz_id and user ID to the serializer
+        serializer = self.get_serializer(data=request.data, context={'request': request, 'view': self, 'user_id': user.id})
         serializer.is_valid(raise_exception=True)
         result = serializer.save()
 
