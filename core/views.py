@@ -8,6 +8,8 @@ from django.apps import apps
 from django.conf import settings
 from accounts.models import User
 from accounts.utils import send_course_assignment_email
+
+from core import serializers
 logger = logging.getLogger(__name__)
 from rest_framework.views import APIView
 from rest_framework import generics, permissions
@@ -99,32 +101,26 @@ class CommunityDetail(generics.RetrieveAPIView):
     queryset = Community.objects.all()
     serializer_class = CommunitySerializer
 
-from rest_framework.permissions import AllowAny
-class JoinCommunityView(APIView):
-    permission_classes = [AllowAny]  # Adjust if necessary for your authentication needs
 
+class JoinCommunityView(APIView):
     def post(self, request, community_id, format=None):
+        user_id = request.data.get('user_id')
+
+        if not user_id:
+            return Response({'error': 'User ID not provided.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
         serializer = JoinCommunitySerializer(data={'community_id': community_id})
         if serializer.is_valid():
-            user = request.user if request.user.is_authenticated else None
-
-            # Check if user is authenticated
-            if user is None:
-                return Response({'error': 'User must be logged in to join a community.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-            # Retrieve the community instance
             try:
-                community = Community.objects.get(id=community_id)
-            except Community.DoesNotExist:
-                return Response({'error': 'Community not found.'}, status=status.HTTP_404_NOT_FOUND)
+                community = serializer.join_community(user)
+            except serializers.ValidationError as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Check if user is already a member of the community
-            if community.members.filter(id=user.id).exists():
-                return Response({'message': 'You are already a member of this community.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Add user to the community
-            community.members.add(user)
-            
             return Response({
                 'community_id': community.id,
                 'message': 'Successfully joined the community'
@@ -291,6 +287,7 @@ class QuizDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
 
+
 class TakeQuizAPIView(generics.CreateAPIView):
     serializer_class = TakeQuizSerializer
 
@@ -317,8 +314,8 @@ class TakeQuizAPIView(generics.CreateAPIView):
         result = serializer.save()
 
         return Response(result, status=status.HTTP_201_CREATED)
-##questions
     
+##questions    
 class QuestionCreateAPIView(generics.CreateAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
@@ -353,7 +350,6 @@ class ChoiceDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ChoiceSerializer   
 
 ##assigments
-
 class AssignmentCreateAPIView(generics.CreateAPIView):
     queryset = Assignment.objects.all()
     serializer_class = AssignmentSerializer
@@ -378,6 +374,7 @@ class SubmissionCreateAPIView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         user_id = request.data.get('user_id')
         assignment_id = request.data.get('assignment_id')
+        course_id = request.data.get('course_id')  # Ensure course_id is also handled
 
         if not user_id:
             return Response({"error": "User ID not provided"}, status=status.HTTP_400_BAD_REQUEST)
@@ -392,8 +389,15 @@ class SubmissionCreateAPIView(generics.CreateAPIView):
         except Assignment.DoesNotExist:
             return Response({"error": "Assignment not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Pass the user and assignment to the serializer context
-        serializer = self.get_serializer(data=request.data, context={'user_id': user.id, 'assignment_id': assignment.id, 'view': self})
+        try:
+            course = assignment.course  # Assume course is related to assignment
+            if course.id != course_id:
+                return Response({"error": "Course ID does not match assignment's course"}, status=status.HTTP_400_BAD_REQUEST)
+        except AttributeError:
+            return Response({"error": "Assignment does not have a related course"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Pass the user, assignment, and course to the serializer context
+        serializer = self.get_serializer(data=request.data, context={'user_id': user.id, 'assignment_id': assignment.id, 'course_id': course.id, 'view': self})
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)

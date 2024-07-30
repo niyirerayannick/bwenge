@@ -86,6 +86,11 @@ class JoinCommunitySerializer(serializers.Serializer):
     def join_community(self, user):
         community_id = self.validated_data['community_id']
         community = Community.objects.get(id=community_id)
+        
+        # Check if user is already a member
+        if community.members.filter(id=user.id).exists():
+            raise serializers.ValidationError("User is already a member of this community.")
+        
         community.members.add(user)
         return community
 
@@ -180,12 +185,7 @@ class TakeQuizSerializer(serializers.Serializer):
 
     def validate(self, data):
         answers = data['answers']
-        quiz_id = self.context['view'].kwargs.get('quiz_id')
-
-        try:
-            quiz = Quiz.objects.get(id=quiz_id)
-        except Quiz.DoesNotExist:
-            raise serializers.ValidationError("Quiz not found.")
+        quiz = self.context['quiz']
 
         question_ids = set(quiz.questions.values_list('id', flat=True))
         for answer in answers:
@@ -196,12 +196,9 @@ class TakeQuizSerializer(serializers.Serializer):
         return data
 
     def create(self, validated_data):
-        quiz_id = self.context['view'].kwargs.get('quiz_id')
+        quiz = self.context['quiz']
+        user = self.context['user']
         answers = validated_data['answers']
-        user_id = self.context['user_id']
-
-        if user_id is None:
-            raise serializers.ValidationError("User must be authenticated to take a quiz.")
 
         correct_count = 0
         total_questions = len(answers)
@@ -212,7 +209,7 @@ class TakeQuizSerializer(serializers.Serializer):
             is_correct = selected_choice.is_correct
 
             user_answer, created = UserAnswer.objects.update_or_create(
-                user_id=user_id,
+                user=user,
                 question=question,
                 defaults={
                     'selected_choice': selected_choice,
@@ -226,11 +223,12 @@ class TakeQuizSerializer(serializers.Serializer):
         score = (correct_count / total_questions) * 100
 
         return {
-            'quiz_id': quiz_id,
+            'quiz_id': quiz.id,
             'score': score,
             'total_questions': total_questions,
             'correct_answers': correct_count
         }
+    
 
 class AssignmentSerializer(serializers.ModelSerializer):
     course = CourseSerializer(read_only=True)
@@ -242,19 +240,26 @@ class AssignmentSerializer(serializers.ModelSerializer):
 
 # SubmissionSerializer to serialize submission details
 class SubmissionSerializer(serializers.ModelSerializer):
-    assignment = AssignmentSerializer(read_only=True)  # Nested AssignmentSerializer
-    student = UserSerializer(read_only=True)  # Nested UserSerializer
+    # Include related user, assignment, and course information
+    user_id = serializers.IntegerField(source='student.id', read_only=True)
+    user_email = serializers.EmailField(source='student.email', read_only=True)
+    user_name = serializers.CharField(source='student.get_full_name', read_only=True)
+    assignment_id = serializers.IntegerField(source='assignment.id', read_only=True)
+    assignment_title = serializers.CharField(source='assignment.title', read_only=True)
+    course_id = serializers.IntegerField(source='assignment.course.id', read_only=True)
+    course_title = serializers.CharField(source='assignment.course.title', read_only=True)
 
     class Meta:
         model = Submission
-        fields = ['id', 'assignment', 'student', 'file', 'submitted_at']
+        fields = ['id', 'user_id', 'user_email', 'user_name', 'assignment_id', 'assignment_title', 'course_id', 'course_title', 'file', 'submitted_at']
 
     def create(self, validated_data):
         user_id = self.context.get('user_id')
-        assignment_id = self.context.get('assignment_id')  # Assume assignment_id is passed in context
+        assignment_id = self.context.get('assignment_id')
+        course_id = self.context.get('course_id')
 
-        if user_id is None:
-            raise serializers.ValidationError("User must be authenticated to make a submission.")
+        if not user_id:
+            raise serializers.ValidationError("User ID must be provided to make a submission.")
 
         try:
             user = User.objects.get(id=user_id)
@@ -265,6 +270,11 @@ class SubmissionSerializer(serializers.ModelSerializer):
             assignment = Assignment.objects.get(id=assignment_id)
         except Assignment.DoesNotExist:
             raise serializers.ValidationError("Assignment not found.")
+        
+        try:
+            course = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            raise serializers.ValidationError("Course not found.")
 
         submission = Submission.objects.create(
             student=user,
@@ -272,7 +282,6 @@ class SubmissionSerializer(serializers.ModelSerializer):
             file=validated_data.get('file')
         )
         return submission
-
 class UploadExcelSerializer(serializers.Serializer):
     file = serializers.FileField()
 

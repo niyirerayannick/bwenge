@@ -173,6 +173,7 @@ class Lecture(models.Model):
     title = models.CharField(max_length=100)
     chapter = models.ForeignKey(Chapter, related_name='lectures', on_delete=models.CASCADE)
     video_url = models.URLField()
+    video_file = models.FileField(upload_to='videos/')
     pdf_url = models.FileField(upload_to='media/COURSE/',)
 
     def __str__(self):
