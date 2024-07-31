@@ -225,7 +225,7 @@ def adminlogin(request):
             messages.error(request, 'Invalid email or password.')
             return redirect('adminlogin')
 
-    return render(request, "admin/auth/login.html")
+    return render(request, "admin2/auth/login.html")
 
 def forgot_password(request):
-    return render(request, 'admin/auth/forgot_password.html')
+    return render(request, 'admin2/auth/forgot_password.html')
