@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from accounts.models import User
+from rest_framework.exceptions import ValidationError
 from .models import (Article, Comment, Category, Enrollment, UserAnswer, Video, Community, CommunityCategory, Post, Reply, 
 Assignment, Choice, Course, Chapter, Lecture, Question, Quiz, Submission, Project)
 from django.contrib.auth import get_user_model
@@ -74,13 +75,12 @@ class CommunitySerializer(serializers.ModelSerializer):
             instance.categories.set(categories_data)
 
         return instance
-
 class JoinCommunitySerializer(serializers.Serializer):
     community_id = serializers.IntegerField()
 
     def validate_community_id(self, value):
         if not Community.objects.filter(id=value).exists():
-            raise serializers.ValidationError("Community not found.")
+            raise ValidationError("Community not found.")
         return value
 
     def join_community(self, user):
@@ -89,11 +89,11 @@ class JoinCommunitySerializer(serializers.Serializer):
         
         # Check if user is already a member
         if community.members.filter(id=user.id).exists():
-            raise serializers.ValidationError("User is already a member of this community.")
+            raise ValidationError("User is already a member of this community.")
         
         community.members.add(user)
         return community
-
+    
 class VideoSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     
