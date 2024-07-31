@@ -41,7 +41,7 @@ def dashboard(request):
         "total_articles":total_articles,
         # 'all_views': all_views
      }
-    return render(request, "admin/dashboard.html", context)
+    return render(request, "admin2/dashboard.html", context)
 
 def addVideo(request):
     if request.method == 'POST':
