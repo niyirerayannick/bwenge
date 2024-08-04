@@ -51,9 +51,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'first_name', 'last_name']
-
+        
 class CommunitySerializer(serializers.ModelSerializer):
-    categories = CommunityCategorySerializer(many=True, read_only=True)
+    categories = CommunityCategorySerializer(many=True)
     members = UserSerializer(many=True, read_only=True)
     created_date = serializers.DateTimeField(read_only=True)
 
@@ -64,7 +64,11 @@ class CommunitySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         categories_data = validated_data.pop('categories', [])
         community = Community.objects.create(**validated_data)
-        community.categories.set(categories_data)
+        
+        for category_data in categories_data:
+            category, created = CommunityCategory.objects.get_or_create(**category_data)
+            community.categories.add(category)
+        
         return community
 
     def update(self, instance, validated_data):
@@ -72,9 +76,14 @@ class CommunitySerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
         
         if categories_data is not None:
-            instance.categories.set(categories_data)
+            instance.categories.clear()
+            for category_data in categories_data:
+                category, created = CommunityCategory.objects.get_or_create(**category_data)
+                instance.categories.add(category)
 
         return instance
+   
+
 class JoinCommunitySerializer(serializers.Serializer):
     community_id = serializers.IntegerField()
 
