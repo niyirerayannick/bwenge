@@ -113,7 +113,7 @@ class SingleVideoAPIView(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.data)
 ########################################-community VIEWS-######################################################
 class CommunityList(generics.ListAPIView):
-    queryset = Community.objects.all()
+    queryset = Community.objects.all().order_by('-created_at')
     serializer_class = CommunitySerializer
 
 class CommunityCreate(generics.CreateAPIView):
@@ -209,7 +209,7 @@ class MyStatisticsView(APIView):
 
 ##post
 class PostList(generics.ListAPIView):
-    queryset = Post.objects.all()
+    queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
 
 class PostCreate(generics.CreateAPIView):
@@ -448,7 +448,7 @@ class SubmissionDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ProjectListView(generics.ListAPIView):
-    queryset = Project.objects.all()
+    queryset = Project.objects.all().order_by('-created_at')
     serializer_class = ProjectSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
