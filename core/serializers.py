@@ -119,7 +119,9 @@ class VideoSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = '__all__'
+        fields = ['id', 'title', 'content_type', 'text_content', 'file_content', 
+                  'video_content', 'url_content', 'author', 'community']
+        read_only_fields = ['created_at', 'likes', 'views']
 
 class ReplySerializer(serializers.ModelSerializer):
     class Meta:

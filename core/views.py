@@ -8,7 +8,7 @@ from django.apps import apps
 from django.conf import settings
 from accounts.models import User
 from accounts.utils import send_course_assignment_email
-
+from django.db.models import Count
 from core import serializers
 logger = logging.getLogger(__name__)
 from rest_framework.views import APIView
@@ -68,6 +68,29 @@ class CreateCommentAPIView(generics.CreateAPIView):
 class SingleCommentAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+
+class CommunityStarView(APIView):
+    def get(self, request, community_id):
+        try:
+            community = Community.objects.get(id=community_id)
+        except Community.DoesNotExist:
+            return Response({"error": "Community not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        top_members = User.objects.filter(post__community=community)\
+                                  .annotate(post_count=Count('post'))\
+                                  .order_by('-post_count')[:3]
+
+        result = []
+        for member in top_members:
+            result.append({
+                'member_id': member.id,
+                'member_name': member.email,
+                'post_count': member.post_count
+            })
+
+        return Response(result, status=status.HTTP_200_OK)
+
+
 
 ########################################-VIDEO VIEWS-######################################################
 
