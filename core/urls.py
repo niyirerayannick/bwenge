@@ -40,7 +40,7 @@ urlpatterns = [
     path('communities/<int:pk>/', views.CommunityDetail.as_view(), name='community-detail'),
     path('communities/categories', views.Commu_categoryCreateAPIView.as_view(), name='community-categories-list'),
     path('communities/<int:community_id>/join/', JoinCommunityView.as_view(), name='community-join'),
-    path('community/<int:community_id>/stars/', CommunityStarView.as_view(), name='community_star'),
+    path('communities/<int:community_id>/stars/', CommunityStarView.as_view(), name='community_star'),
     #All for single user
     path('my-communities/', mycommunuties.as_view(), name='my-communities'),
     path('my-articles/', MyArticlesView.as_view(), name='my-articles'),
