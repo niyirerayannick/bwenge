@@ -7,17 +7,6 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-class ProjectSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Project
-        fields = ['id', 'topics', 'description', 'tags', 'file', 'author', 'level', 'submitted_date', 'total_downloads', 'views']
-
-    def create(self, validated_data):
-        return Project.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        return super().update(instance, validated_data)
-
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
@@ -51,7 +40,29 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'first_name', 'last_name']
-        
+
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)  # Assuming author is a ForeignKey
+
+    class Meta:
+        model = Project
+        fields = [
+            'id', 'topics', 'description', 'tags', 'file', 'author', 
+            'level', 'submitted_date', 'total_downloads', 'views'
+        ]
+        read_only_fields = ('total_downloads', 'views', 'submitted_date')  # Make certain fields read-only
+
+    def create(self, validated_data):
+        return Project.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
+
+
+
+
 class CommunitySerializer(serializers.ModelSerializer):
     categories = CommunityCategorySerializer(many=True)
     members = UserSerializer(many=True, read_only=True)
@@ -117,11 +128,20 @@ class VideoSerializer(serializers.ModelSerializer):
         return video
 
 class PostSerializer(serializers.ModelSerializer):
+    author = serializers.SerializerMethodField()
+
     class Meta:
         model = Post
-        fields = ['id', 'title', 'content_type', 'text_content', 'file_content', 
-                  'video_content', 'url_content', 'author', 'community']
-        read_only_fields = ['created_at', 'likes', 'views']
+        fields = [
+            'id', 'title', 'content_type', 'text_content', 'file_content',
+            'video_content', 'url_content', 'author', 'community'
+        ]
+        read_only_fields = ('created_at', 'likes', 'views')
+
+    def get_author(self, obj):
+        return [UserSerializer(obj.author).data]
+    
+
 
 class ReplySerializer(serializers.ModelSerializer):
     class Meta:
