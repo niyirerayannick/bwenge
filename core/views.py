@@ -1,5 +1,6 @@
 # views.py
 from turtle import pd
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 import openpyxl
 from rest_framework import status
@@ -17,11 +18,11 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import generics,status
-from .models import (Article, Comment,Category, Community, CommunityCategory, Enrollment, PendingEnrollment, Post, Reply,Video,Project,
+from .models import (Article, Comment,Category, Community, CommunityCategory, Enrollment, Institution, PendingEnrollment, Post, Reply,Video,Project,
                      Assignment, Chapter, Choice, Course, Lecture, Question, Quiz, Submission,
                      Quiz, Question, Choice)
 from .serializers import (ArticleSerializer, CategorySerializer, CommentSerializer, CommunityCategorySerializer, 
-                          CommunitySerializer, EmailAssignmentSerializer, EnrollmentSerializer, JoinCommunitySerializer,
+                          CommunitySerializer, EmailAssignmentSerializer, EnrollmentSerializer, InstitutionSerializer, JoinCommunitySerializer,
                             PostSerializer, ReplySerializer, ProjectSerializer, TakeQuizSerializer, UploadExcelSerializer,
                           VideoSerializer,CourseSerializer,AssignmentSerializer, ChapterSerializer,
                             ChoiceSerializer, CourseSerializer,LectureSerializer, QuestionSerializer,
@@ -445,7 +446,44 @@ class SubmissionDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
             self.permission_denied(self.request)
         return obj
 
+class InstitutionList(APIView):
+    def get(self, request):
+        institutions = Institution.objects.all()
+        serializer = InstitutionSerializer(institutions, many=True)
+        return Response(serializer.data)
 
+    def post(self, request):
+        serializer = InstitutionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Retrieve, update, or delete an institution by id
+class InstitutionDetail(APIView):
+    def get_object(self, pk):
+        try:
+            return Institution.objects.get(pk=pk)
+        except Institution.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk):
+        institution = self.get_object(pk)
+        serializer = InstitutionSerializer(institution)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        institution = self.get_object(pk)
+        serializer = InstitutionSerializer(institution, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        institution = self.get_object(pk)
+        institution.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class ProjectListView(generics.ListAPIView):
     queryset = Project.objects.all()

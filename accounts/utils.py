@@ -35,7 +35,6 @@ def send_normal_email(data):
     )
     email.send()
 
-
 from django.core.mail import EmailMessage
 from django.conf import settings
 
@@ -43,7 +42,7 @@ def send_course_assignment_email(email, course_title, request=None):
     subject = 'You have been assigned to a new course!'
     current_site = get_current_site(request).domain if request else 'our platform'
     email_body = (f"Dear User,\n\n"
-                  f"You have been assigned to the course '{course_title}' on {current_site}. "
+                  f"You have been assigned to the course '{course_title}' on wwww.bwenge.com. "
                   f"Please log in to your account to view the details.\n\n"
                   f"Best regards,\nYour Platform Team")
     

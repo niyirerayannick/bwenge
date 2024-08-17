@@ -2,7 +2,7 @@ import logging
 from rest_framework import generics
 from multiprocessing import context
 from django.forms import ValidationError
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework.generics import GenericAPIView
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -194,13 +194,43 @@ class SetNewPasswordView(GenericAPIView):
         return Response({'success':True, 'message':"password reset is succesful"}, status=status.HTTP_200_OK)
 
 
-class ProfileDetail(generics.RetrieveUpdateAPIView):
-    permission_classes = [IsAuthenticated]
-    queryset = Profile.objects.all()
+class ProfileDetail(generics.GenericAPIView):
     serializer_class = ProfileSerializer
 
-    def get_object(self):
-        return self.request.user.profile
+    def get(self, request, *args, **kwargs):
+        user_id = self.kwargs.get('user_id')
+
+        if not user_id:
+            return Response({"error": "User ID not provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Retrieve the profile associated with the user
+        profile = get_object_or_404(Profile, user=user)
+        serializer = self.get_serializer(profile)
+
+        return Response(serializer.data)
+
+    def put(self, request, *args, **kwargs):
+        user_id = self.kwargs.get('user_id')
+
+        if not user_id:
+            return Response({"error": "User ID not provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        profile = get_object_or_404(Profile, user=user)
+        serializer = self.get_serializer(profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
 
 
 

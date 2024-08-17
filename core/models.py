@@ -117,6 +117,7 @@ class Reply(models.Model):
 class Institution(models.Model):
     name = models.CharField(max_length=100)
     logo = models.ImageField(upload_to='institution_logos/')
+    email = models.EmailField(null=True, blank=True)  # Optional email field
 
     def __str__(self):
         return self.name
@@ -141,7 +142,7 @@ class Project(models.Model):
     submitted_date = models.DateTimeField(auto_now_add=True)
     total_downloads = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-    # institution = models.ForeignKey(Institution, null=True, on_delete=models.SET_NULL) #CORRECT THIS BY CONNETING
+    institution = models.ForeignKey(Institution, null=True, on_delete=models.SET_NULL) #CORRECT THIS BY CONNETING
     is_approved = models.BooleanField(default=True)
 
     def __str__(self):

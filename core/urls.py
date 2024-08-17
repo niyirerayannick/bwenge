@@ -2,7 +2,7 @@
 
 from django.urls import path
 from . import views
-from .views import (ArticleCreateAPIView, ArticleListAPIView, AssignUsersToSPOCAPIView, CommunityStarView, CourseEnrollAPIView, CreateVideoAPIView, JoinCommunityView, MyArticlesView, MyCoursesView, MyProjectsView, MyStatisticsView, ProjectDetailView, ProjectListView,
+from .views import (ArticleCreateAPIView, ArticleListAPIView, AssignUsersToSPOCAPIView, CommunityStarView, CourseEnrollAPIView, CreateVideoAPIView, InstitutionDetail, InstitutionList, JoinCommunityView, MyArticlesView, MyCoursesView, MyProjectsView, MyStatisticsView, ProjectDetailView, ProjectListView,
           SingleArticleAPIView, CategoryCreateAPIView, SingleCategoryAPIView, 
           CreateCommentAPIView,
           SingleCommentAPIView, SingleVideoAPIView, TakeQuizAPIView, UploadExcelAPIView,
@@ -98,5 +98,7 @@ urlpatterns = [
     path('projects/<int:pk>/', ProjectDetailView.as_view(), name='project-detail'),
     path('projects/create/', ProjectCreateView.as_view(), name='project-create'),
     
+    path('institutions/', InstitutionList.as_view(), name='institution-list'),
+    path('institutions/<int:pk>/', InstitutionDetail.as_view(), name='institution-detail'),
 
 ]

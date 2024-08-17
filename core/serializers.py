@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from accounts.models import User
 from rest_framework.exceptions import ValidationError
-from .models import (Article, Comment, Category, Enrollment, UserAnswer, Video, Community, CommunityCategory, Post, Reply, 
+from .models import (Article, Comment, Category, Enrollment, Institution, UserAnswer, Video, Community, CommunityCategory, Post, Reply, 
 Assignment, Choice, Course, Chapter, Lecture, Question, Quiz, Submission, Project)
 from django.contrib.auth import get_user_model
 
@@ -41,16 +41,19 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'first_name', 'last_name']
 
-
+class InstitutionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Institution
+        fields = ['id', 'name', 'logo','email']
 
 class ProjectSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)  # Assuming author is a ForeignKey
-
+    institution = InstitutionSerializer(read_only=True)
     class Meta:
         model = Project
         fields = [
             'id', 'topics', 'description', 'tags', 'file', 'author', 
-            'level', 'submitted_date', 'total_downloads', 'views'
+            'level', 'submitted_date', 'total_downloads', 'views','institution'
         ]
         read_only_fields = ('total_downloads', 'views', 'submitted_date')  # Make certain fields read-only
 
