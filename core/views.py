@@ -449,11 +449,12 @@ class SubmissionDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 class InstitutionList(APIView):
     def get(self, request):
         institutions = Institution.objects.all()
-        serializer = InstitutionSerializer(institutions, many=True)
+        # Pass the request context to the serializer
+        serializer = InstitutionSerializer(institutions, many=True, context={'request': request})
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = InstitutionSerializer(data=request.data)
+        serializer = InstitutionSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -469,12 +470,13 @@ class InstitutionDetail(APIView):
 
     def get(self, request, pk):
         institution = self.get_object(pk)
-        serializer = InstitutionSerializer(institution)
+        # Pass the request context to the serializer
+        serializer = InstitutionSerializer(institution, context={'request': request})
         return Response(serializer.data)
 
     def put(self, request, pk):
         institution = self.get_object(pk)
-        serializer = InstitutionSerializer(institution, data=request.data)
+        serializer = InstitutionSerializer(institution, data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

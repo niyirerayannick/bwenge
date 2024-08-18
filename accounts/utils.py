@@ -4,8 +4,6 @@ from django.conf import settings
 from .models import User, OneTimePassword
 from django.contrib.sites.shortcuts import get_current_site
 
-
-
 def send_generated_otp_to_email(email, request): 
     subject = "One-Time Passcode for Email Verification"
     otp = random.randint(100000, 999999)  # Correct the range
