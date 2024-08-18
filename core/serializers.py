@@ -44,7 +44,20 @@ class UserSerializer(serializers.ModelSerializer):
 class InstitutionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Institution
-        fields = ['id', 'name', 'logo','email']
+        fields = ['id', 'name', 'logo', 'email']
+
+    def to_representation(self, instance):
+        # Get the original representation
+        representation = super().to_representation(instance)
+        
+        # Get the request object to build the full URL
+        request = self.context.get('request')
+        if request:
+            logo_url = instance.logo.url  # Get the relative URL of the logo
+            full_logo_url = request.build_absolute_uri(logo_url)  # Build the full URL
+            representation['logo'] = full_logo_url  # Update the logo field with the full URL
+        
+        return representation
 
 class ProjectSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)  # Assuming author is a ForeignKey
