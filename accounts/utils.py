@@ -3,6 +3,12 @@ import random
 from django.conf import settings
 from .models import User, OneTimePassword
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import EmailMessage
+from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
 
 def send_generated_otp_to_email(email, request): 
     subject = "One-Time Passcode for Email Verification"
