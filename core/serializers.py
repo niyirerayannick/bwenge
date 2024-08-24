@@ -58,25 +58,27 @@ class InstitutionSerializer(serializers.ModelSerializer):
             representation['logo'] = full_logo_url  # Update the logo field with the full URL
         
         return representation
-
 class ProjectSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)  # Assuming author is a ForeignKey
-    institution = InstitutionSerializer(read_only=True)
+    institution = serializers.PrimaryKeyRelatedField(
+        queryset=Institution.objects.all()
+    )  # Allow users to select an institution
+
     class Meta:
         model = Project
         fields = [
-            'id', 'topics', 'description', 'tags', 'file', 'author', 
-            'level', 'submitted_date', 'total_downloads', 'views','institution'
+            'id', 'topics', 'description', 'tags', 'file', 'author', 'institution',
+            'level', 'submitted_date', 'total_downloads', 'views',
         ]
         read_only_fields = ('total_downloads', 'views', 'submitted_date')  # Make certain fields read-only
 
     def create(self, validated_data):
-        return Project.objects.create(**validated_data)
+        author = self.context['request'].user  # Assign the current user as the author
+        project = Project.objects.create(author=author, **validated_data)
+        return project
 
     def update(self, instance, validated_data):
         return super().update(instance, validated_data)
-
-
 
 
 class CommunitySerializer(serializers.ModelSerializer):
