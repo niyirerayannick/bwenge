@@ -58,7 +58,9 @@ class InstitutionSerializer(serializers.ModelSerializer):
             representation['logo'] = full_logo_url  # Update the logo field with the full URL
         
         return representation
+
 class ProjectSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(write_only=True)  # Accept user_id in requests
     author = UserSerializer(read_only=True)  # Assuming author is a ForeignKey
     institution = serializers.PrimaryKeyRelatedField(
         queryset=Institution.objects.all()
@@ -68,13 +70,23 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             'id', 'topics', 'description', 'tags', 'file', 'author', 'institution',
-            'level', 'submitted_date', 'total_downloads', 'views',
+            'level', 'submitted_date', 'total_downloads', 'views', 'user_id',
         ]
         read_only_fields = ('total_downloads', 'views', 'submitted_date')  # Make certain fields read-only
 
     def create(self, validated_data):
-        author = self.context['request'].user  # Assign the current user as the author
-        project = Project.objects.create(author=author, **validated_data)
+        user_id = validated_data.pop('user_id', None)
+        
+        if user_id is None:
+            raise ValidationError('User ID must be provided.')
+        
+        try:
+            author = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise ValidationError('Invalid User ID provided.')
+
+        institution = validated_data.pop('institution', None)
+        project = Project.objects.create(author=author, institution=institution, **validated_data)
         return project
 
     def update(self, instance, validated_data):
