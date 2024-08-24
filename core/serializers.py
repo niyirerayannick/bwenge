@@ -92,9 +92,10 @@ class ProjectSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         return super().update(instance, validated_data)
 
-
 class CommunitySerializer(serializers.ModelSerializer):
-    categories = CommunityCategorySerializer(many=True)
+    categories = serializers.PrimaryKeyRelatedField(
+        queryset=CommunityCategory.objects.all(), many=True
+    )  # Specify many=True to handle multiple categories
     members = UserSerializer(many=True, read_only=True)
     created_date = serializers.DateTimeField(read_only=True)
 
@@ -103,27 +104,27 @@ class CommunitySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'poster_image', 'admin', 'created_date', 'categories', 'members']
 
     def create(self, validated_data):
+        # Extract and remove the categories field from validated_data
         categories_data = validated_data.pop('categories', [])
         community = Community.objects.create(**validated_data)
         
-        for category_data in categories_data:
-            category, created = CommunityCategory.objects.get_or_create(**category_data)
-            community.categories.add(category)
+        # Add categories to the newly created community
+        community.categories.set(categories_data)  # Use .set() to set multiple categories
         
         return community
 
     def update(self, instance, validated_data):
+        # Extract and remove the categories field from validated_data
         categories_data = validated_data.pop('categories', None)
+        
+        # Update other fields using the parent class's update method
         instance = super().update(instance, validated_data)
         
+        # Update the categories if provided
         if categories_data is not None:
-            instance.categories.clear()
-            for category_data in categories_data:
-                category, created = CommunityCategory.objects.get_or_create(**category_data)
-                instance.categories.add(category)
-
+            instance.categories.set(categories_data)  # Use .set() to replace the categories
+        
         return instance
-   
 
 class JoinCommunitySerializer(serializers.Serializer):
     community_id = serializers.IntegerField()
