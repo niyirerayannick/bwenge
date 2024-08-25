@@ -148,7 +148,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
             user= User.objects.get(email=email)
             uidb64=urlsafe_base64_encode(smart_bytes(user.id))
             token = PasswordResetTokenGenerator().make_token(user)
-            base_url = "https://www.bwenge.com/"
+            base_url = "https://www.bwenge.com"
             relative_link =reverse('reset-password-confirm', kwargs={'uidb64':uidb64, 'token':token})
             abslink = f"{base_url}{relative_link}"
             email_body = f"Hi {user.first_name},\n\nUse the link below to reset your password:\n{abslink}\n\nIf you did not request a password reset, please ignore this email."
