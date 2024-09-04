@@ -45,7 +45,6 @@ class Video(models.Model):
 
 class Comment(models.Model):
     article = models.ForeignKey(Article, related_name='article_comments', on_delete=models.CASCADE)
-    video = models.ForeignKey(Video, related_name='video_comments', on_delete=models.CASCADE)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     comment = models.TextField()
     reply = models.ForeignKey('self', related_name='replies', null=True, blank=True, on_delete=models.CASCADE)

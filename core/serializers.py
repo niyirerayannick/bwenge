@@ -6,6 +6,10 @@ Assignment, Choice, Course, Chapter, Lecture, Question, Quiz, Submission, Projec
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name']
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,6 +23,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ArticleSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
+    author = UserSerializer(read_only=True)
     categories = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), many=True, required=True)
 
     class Meta:
@@ -26,20 +31,20 @@ class ArticleSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'poster_image', 'description', 'categories', 'likes', 'views', 'author', 'date', 'comments']
 
     def create(self, validated_data):
+        request = self.context.get('request')
         categories_data = validated_data.pop('categories', [])
-        article = Article.objects.create(**validated_data)
+        
+        # Ensure that the author is set to the current user
+        article = Article.objects.create(author=request.user, **validated_data)
+        
         article.categories.set(categories_data)
         return article
-
 class CommunityCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityCategory
         fields = ['id', 'name']
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'email', 'first_name', 'last_name']
+
 
 class InstitutionSerializer(serializers.ModelSerializer):
     class Meta:

@@ -48,7 +48,7 @@ class ArticleListAPIView(generics.ListAPIView):
     serializer_class = ArticleSerializer
     def get_queryset(self):
         # Order articles by 'created_at' field in descending order
-        return Article.objects.all().order_by('-created_at')
+        return Article.objects.all().order_by('-date')
 
 class SingleArticleAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Article.objects.all()
@@ -61,6 +61,22 @@ class SingleArticleAPIView(generics.RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
+class ArticleLikeAPIView(APIView):
+    def post(self, request, pk, format=None):  # POST request
+        return self.increment_likes(pk)
+
+    def get(self, request, pk, format=None):  # GET request, if preferred
+        return self.increment_likes(pk)
+
+    def increment_likes(self, pk):
+        try:
+            article = Article.objects.get(pk=pk)
+            article.likes += 1
+            article.save()
+            return Response({'status': 'article liked', 'likes': article.likes}, status=status.HTTP_200_OK)
+        except Article.DoesNotExist:
+            return Response({'error': 'Article not found'}, status=status.HTTP_404_NOT_FOUND)
+         
 #crete,listing all and select single COMMENTS
 class CreateCommentAPIView(generics.CreateAPIView):
     queryset = Comment.objects.all()

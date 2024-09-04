@@ -27,8 +27,8 @@ class VideoAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('article', 'video', 'author', 'date', 'is_approved')
-    search_fields = ('author__email', 'article__title', 'video__title')
+    list_display = ('article', 'author', 'date', 'is_approved')
+    search_fields = ('author__email', 'article__title', )
     list_filter = ('is_approved', 'date')
 
 @admin.register(CommunityCategory)
