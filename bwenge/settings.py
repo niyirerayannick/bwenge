@@ -33,7 +33,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['admin.bwenge.com','localhost','127.0.0.1','bwenge.com']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -198,6 +197,7 @@ EMAIL_HOST_PASSWORD = 'uvmy fodq jycu inhn'
 #orsu rfjj cyuk cmdq # Use an App password if 2FA is enabled
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'bwengeorg@gmail.com'
+
 
 
 JAZZMIN_SETTINGS = {

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from accounts.models import User
 from rest_framework.exceptions import ValidationError
-from .models import (Article, Comment, Category, Enrollment, Institution, UserAnswer, Video, Community, CommunityCategory, Post, Reply, 
+from .models import (Article, ArticleLike, Comment, Category, Enrollment, Institution, UserAnswer, Video, Community, CommunityCategory, Post, Reply, 
 Assignment, Choice, Course, Chapter, Lecture, Question, Quiz, Submission, Project)
 from django.contrib.auth import get_user_model
 
@@ -39,6 +39,7 @@ class ArticleSerializer(serializers.ModelSerializer):
         
         article.categories.set(categories_data)
         return article
+
 class CommunityCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityCategory

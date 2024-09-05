@@ -18,7 +18,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import generics,status
-from .models import (Article, Comment,Category, Community, CommunityCategory, Enrollment, Institution, PendingEnrollment, Post, Reply,Video,Project,
+from .models import (Article, ArticleLike, Comment,Category, Community, CommunityCategory, Enrollment, Institution, PendingEnrollment, Post, Reply,Video,Project,
                      Assignment, Chapter, Choice, Course, Lecture, Question, Quiz, Submission,
                      Quiz, Question, Choice)
 from .serializers import (ArticleSerializer, CategorySerializer, CommentSerializer, CommunityCategorySerializer, 
@@ -60,23 +60,72 @@ class SingleArticleAPIView(generics.RetrieveUpdateDestroyAPIView):
         instance.save()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
-
-class ArticleLikeAPIView(APIView):
-    def post(self, request, pk, format=None):  # POST request
-        return self.increment_likes(pk)
-
-    def get(self, request, pk, format=None):  # GET request, if preferred
-        return self.increment_likes(pk)
-
-    def increment_likes(self, pk):
+    
+class ToggleLikeView(APIView):
+    def post(self, request, pk, format=None):
+        user = request.user  # Assuming user is authenticated
+        
         try:
+            # Retrieve the article by primary key (pk)
             article = Article.objects.get(pk=pk)
-            article.likes += 1
-            article.save()
-            return Response({'status': 'article liked', 'likes': article.likes}, status=status.HTTP_200_OK)
+
+            # Check if the user has already liked the article
+            article_like, created = ArticleLike.objects.get_or_create(user=user, article=article)
+
+            if not created:
+                # If the like already exists, the user is "disliking" the article (remove the like)
+                article.likes -= 1
+                article.likes = max(0, article.likes)  # Ensure likes don't go below 0
+                article.save()
+
+                # Remove the like entry from ArticleLike table
+                article_like.delete()
+
+                return Response({'status': 'article disliked', 'likes': article.likes}, status=status.HTTP_200_OK)
+
+            else:
+                # If no like exists, the user is "liking" the article
+                article.likes += 1
+                article.save()
+
+                return Response({'status': 'article liked', 'likes': article.likes}, status=status.HTTP_200_OK)
+        
         except Article.DoesNotExist:
+            # Return error response if article is not found
             return Response({'error': 'Article not found'}, status=status.HTTP_404_NOT_FOUND)
-         
+        
+class LikeArticleView(APIView):
+    def post(self, request, pk, format=None):
+        try:
+            # Retrieve the article by primary key (pk)
+            article = Article.objects.get(pk=pk)
+            
+            # Check the action passed in the request (default is 'like')
+            action = request.data.get('action', 'like').lower()
+            
+            if action == 'like':
+                # Increment the like count
+                article.likes += 1
+                message = 'article liked'
+            elif action == 'dislike':
+                # Decrement the like count, but prevent it from going below 0
+                article.likes = max(0, article.likes - 1)
+                message = 'article disliked'
+            else:
+                # Invalid action
+                return Response({'error': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Save the updated like count
+            article.save()
+            
+            # Return success response with updated like count
+            return Response({'status': message, 'likes': article.likes}, status=status.HTTP_200_OK)
+        
+        except Article.DoesNotExist:
+            # Return error response if article is not found
+            return Response({'error': 'Article not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+
 #crete,listing all and select single COMMENTS
 class CreateCommentAPIView(generics.CreateAPIView):
     queryset = Comment.objects.all()
