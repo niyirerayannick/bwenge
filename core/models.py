@@ -55,7 +55,6 @@ class Comment(models.Model):
     article = models.ForeignKey(Article, related_name='article_comments', on_delete=models.CASCADE)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     comment = models.TextField()
-    reply = models.ForeignKey('self', related_name='replies', null=True, blank=True, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     is_approved = models.BooleanField(default=True)
 
