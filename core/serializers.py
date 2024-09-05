@@ -187,7 +187,7 @@ class ReplySerializer(serializers.ModelSerializer):
 class LectureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lecture
-        fields = ['id', 'title', 'video_url', 'pdf_url']
+        fields = ['id', 'title', 'video_url','video_file','pdf_url']
 
 class ChapterSerializer(serializers.ModelSerializer):
     lectures = LectureSerializer(many=True, read_only=True)
