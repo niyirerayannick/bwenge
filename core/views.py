@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 import openpyxl
 from rest_framework import status
 import logging
+from rest_framework.exceptions import ValidationError
 from django.apps import apps
 from django.conf import settings
 from accounts.models import User
@@ -282,8 +283,20 @@ class PostCreate(generics.CreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     def perform_create(self, serializer):
-        # Set the author to the currently logged-in user
-        serializer.save(author=self.request.user)
+        # Get user_id from request data (e.g., from request body or query parameters)
+        user_id = self.request.data.get('user_id')
+
+        if not user_id:
+            raise ValidationError({"detail": "User ID is required to create a post."})
+
+        try:
+            # Try to fetch the user based on the user_id
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise ValidationError({"detail": "Invalid User ID. User does not exist."})
+
+        # Save the post with the retrieved user as the author
+        serializer.save(author=user)
 
 class PostDetail(generics.RetrieveAPIView):
     queryset = Post.objects.all()
