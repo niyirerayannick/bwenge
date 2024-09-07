@@ -129,7 +129,6 @@ class Institution(models.Model):
     def __str__(self):
         return self.name
 
-
 class Project(models.Model):
     BACHELOR = 'Bachelor'
     MASTERS = 'Masters'
@@ -142,19 +141,25 @@ class Project(models.Model):
 
     topics = models.CharField(max_length=100)
     description = models.TextField()
-    tags = models.CharField(max_length=100)  # Assuming it's a comma-separated list of keywords
+    tags = models.CharField(max_length=255, blank=True, help_text="Comma-separated list of tags")
     file = models.FileField(upload_to='project_files/')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES)
     submitted_date = models.DateTimeField(auto_now_add=True)
     total_downloads = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-    institution = models.ForeignKey(Institution, null=True, on_delete=models.SET_NULL) #CORRECT THIS BY CONNETING
+    institution = models.ForeignKey('Institution', null=True, blank=True, on_delete=models.SET_NULL)
     is_approved = models.BooleanField(default=True)
 
     def __str__(self):
         return self.topics
 
+    def get_tags(self):
+        return [tag.strip() for tag in self.tags.split(',') if tag]
+
+    def set_tags(self, tags):
+        self.tags = ','.join(tags)
+        
 class Course(models.Model):
     COURSE_TYPE_CHOICES = [
         ('mooc', 'Mooc'), #mooc
