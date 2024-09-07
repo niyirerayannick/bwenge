@@ -165,7 +165,7 @@ class VideoSerializer(serializers.ModelSerializer):
         return video
 
 class PostSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+    author = UserSerializer(read_only=True) 
     community = serializers.PrimaryKeyRelatedField(queryset=Community.objects.all(), required=True)
 
     class Meta:
@@ -210,7 +210,12 @@ class PostSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Only one content field can be provided based on content type.")
 
         return data
+    def create(self, validated_data):
+        # Set the author to the current authenticated user if not provided
+        if 'author' not in validated_data:
+            validated_data['author'] = self.context['request'].user
 
+        return super().create(validated_data)
 
 class ReplySerializer(serializers.ModelSerializer):
     class Meta:
