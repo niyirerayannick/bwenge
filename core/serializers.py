@@ -23,9 +23,9 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class ArticleSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
     categories = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), many=True, required=True)
+    comments = CommentSerializer(source='article_comments', many=True, read_only=True)  # Updated field name
 
     class Meta:
         model = Article
@@ -37,7 +37,6 @@ class ArticleSerializer(serializers.ModelSerializer):
         
         # Ensure that the author is set to the current user
         article = Article.objects.create(author=request.user, **validated_data)
-        
         article.categories.set(categories_data)
         return article
 
@@ -166,19 +165,51 @@ class VideoSerializer(serializers.ModelSerializer):
         return video
 
 class PostSerializer(serializers.ModelSerializer):
-    author = serializers.SerializerMethodField()
+    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+    community = serializers.PrimaryKeyRelatedField(queryset=Community.objects.all(), required=True)
 
     class Meta:
         model = Post
         fields = [
-            'id', 'title', 'content_type', 'text_content', 'file_content',
-            'video_content', 'url_content', 'author', 'community'
+            'id', 'title', 'content_type','text_content','image_content' , 'file_content',
+            'video_content', 'url_content', 'author', 'community', 'created_at', 'likes', 'views'
         ]
         read_only_fields = ('created_at', 'likes', 'views')
 
-    def get_author(self, obj):
-        return [UserSerializer(obj.author).data]
-    
+    def validate(self, data):
+        content_type = data.get('content_type')
+        text_content = data.get('text_content')
+        image_content = data.get('image_content')
+        file_content = data.get('file_content')
+        video_content = data.get('video_content')
+        url_content = data.get('url_content')
+
+        # Ensure that if content_type is provided, it matches the content fields
+        if content_type is None:
+            raise serializers.ValidationError("Content type must be provided.")
+        elif content_type == 'text':
+            if text_content is None:
+                raise serializers.ValidationError("Text content must be provided for 'text' content type.")
+        elif content_type == 'image':
+            if image_content is None:
+                raise serializers.ValidationError("Image content must be provided for 'image' content type.")
+        elif content_type == 'file':
+            if file_content is None:
+                raise serializers.ValidationError("File content must be provided for 'file' content type.")
+        elif content_type == 'video':
+            if video_content is None:
+                raise serializers.ValidationError("Video content must be provided for 'video' content type.")
+        elif content_type == 'url':
+            if url_content is None:
+                raise serializers.ValidationError("URL content must be provided for 'url' content type.")
+        elif content_type is not None:
+            raise serializers.ValidationError("Invalid content type provided.")
+
+        # Ensure that only one content field is provided based on content type
+        if sum(bool(data.get(field)) for field in ['text_content', 'file_content', 'video_content', 'url_content']) > 1:
+            raise serializers.ValidationError("Only one content field can be provided based on content type.")
+
+        return data
 
 
 class ReplySerializer(serializers.ModelSerializer):

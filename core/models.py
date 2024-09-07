@@ -99,6 +99,7 @@ class Post(models.Model):
     content_type = models.CharField(max_length=10, choices=CONTENT_CHOICES, default=TEXT)
     text_content = models.TextField(blank=True, null=True)
     file_content = models.FileField(upload_to='post_files/', blank=True, null=True)
+    image_content = models.ImageField(upload_to='post_images/', blank=True, null=True)
     video_content = models.FileField(upload_to='post_videos/', blank=True, null=True)
     url_content = models.URLField(blank=True, null=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL,  on_delete=models.CASCADE)
