@@ -10,12 +10,25 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'first_name', 'last_name']
-
+        
 class CommentSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
+    author = UserSerializer(read_only=True)  # Keep it read-only to return author details
+    article = serializers.PrimaryKeyRelatedField(queryset=Article.objects.all())
+    user_id = serializers.IntegerField(write_only=True)  # Accept user_id only in the request
+
     class Meta:
         model = Comment
-        fields = ['id', 'article', 'author', 'comment', 'date']
+        fields = ['id', 'article', 'author', 'comment', 'date', 'user_id']  # Include 'user_id' here
+
+    def create(self, validated_data):
+        user_id = validated_data.pop('user_id')  # Remove user_id from validated data
+        try:
+            author = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"detail": "User with this ID does not exist."})
+
+        comment = Comment.objects.create(author=author, **validated_data)
+        return comment
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
