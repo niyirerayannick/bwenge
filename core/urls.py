@@ -2,7 +2,10 @@
 
 from django.urls import path
 from . import views
-from .views import (ArticleCreateAPIView, ArticleListAPIView, AssignUsersToSPOCAPIView, CommunityStarView, CourseEnrollAPIView, CreateVideoAPIView, InstitutionDetail, InstitutionList, JoinCommunityView, LikeArticleView,  MyArticlesView, MyCoursesView, MyProjectsView, MyStatisticsView, ProjectDetailView, ProjectListView,
+from .views import (ArticleCreateAPIView, ArticleListAPIView, AssignUsersToSPOCAPIView, CommunityStarView,
+                     CourseEnrollAPIView, CreateVideoAPIView, InstitutionDetail, InstitutionList, 
+                     JoinCommunityView,  MyArticlesView, MyCoursesView, MyProjectsView, 
+                     MyStatisticsView, ProjectDetailView, ProjectListView,
           SingleArticleAPIView, CategoryCreateAPIView, SingleCategoryAPIView, 
           CreateCommentAPIView,
           SingleCommentAPIView, SingleVideoAPIView, TakeQuizAPIView, ToggleLikeView, UploadExcelAPIView,
@@ -26,7 +29,7 @@ urlpatterns = [
     path('articles/', ArticleListAPIView.as_view(), name='article-list'),
     path('article/<int:pk>/', SingleArticleAPIView.as_view(), name='article-detail'),
     # path('article/<int:pk>/like/', LikeArticleView.as_view(), name='article-like'),  # New endpoint for liking
-    path('article/<int:pk>/like/', ToggleLikeView.as_view(), name='toggle-like'),
+    path('article/like/', ToggleLikeView.as_view(), name='toggle-like'),
 
 #crete,listing all and select single ARTICLES VIEWS
     path('add-comments/', CreateCommentAPIView.as_view(), name='comment-create'),

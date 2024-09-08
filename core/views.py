@@ -23,8 +23,8 @@ from .models import (Article, ArticleLike, Comment,Category, Community, Communit
                      Assignment, Chapter, Choice, Course, Lecture, Question, Quiz, Submission,
                      Quiz, Question, Choice)
 from .serializers import (ArticleSerializer, CategorySerializer, CommentSerializer, CommunityCategorySerializer, 
-                          CommunitySerializer, EmailAssignmentSerializer, EnrollmentSerializer, InstitutionSerializer, JoinCommunitySerializer,
-                            PostSerializer, ReplySerializer, ProjectSerializer, TakeQuizSerializer, UploadExcelSerializer,
+                          CommunitySerializer, CreateArticleLikeSerializer, EmailAssignmentSerializer, EnrollmentSerializer, InstitutionSerializer, JoinCommunitySerializer,
+                            PostSerializer, ReplySerializer, ProjectSerializer, TakeQuizSerializer, UploadExcelSerializer, UserSerializer,
                           VideoSerializer,CourseSerializer,AssignmentSerializer, ChapterSerializer,
                             ChoiceSerializer, CourseSerializer,LectureSerializer, QuestionSerializer,
                               QuizSerializer, SubmissionSerializer,QuizSerializer, QuestionSerializer)
@@ -61,73 +61,51 @@ class SingleArticleAPIView(generics.RetrieveUpdateDestroyAPIView):
         instance.save()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
-    
 class ToggleLikeView(APIView):
-    def post(self, request, pk, format=None):
-        user = request.user  # Assuming user is authenticated
+    def post(self, request, format=None):
+        user_id = request.data.get('user_id')
+        article_id = request.data.get('article_id')
+
+        if not user_id or not article_id:
+            return Response({"error": "User ID and Article ID are required."}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            # Retrieve the article by primary key (pk)
-            article = Article.objects.get(pk=pk)
-
-            # Check if the user has already liked the article
-            article_like, created = ArticleLike.objects.get_or_create(user=user, article=article)
-
-            if not created:
-                # If the like already exists, the user is "disliking" the article (remove the like)
-                article.likes -= 1
-                article.likes = max(0, article.likes)  # Ensure likes don't go below 0
-                article.save()
-
-                # Remove the like entry from ArticleLike table
-                article_like.delete()
-
-                return Response({'status': 'article disliked', 'likes': article.likes}, status=status.HTTP_200_OK)
-
-            else:
-                # If no like exists, the user is "liking" the article
-                article.likes += 1
-                article.save()
-
-                return Response({'status': 'article liked', 'likes': article.likes}, status=status.HTTP_200_OK)
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User with this ID does not exist."}, status=status.HTTP_400_BAD_REQUEST)
         
+        try:
+            article = Article.objects.get(id=article_id)
         except Article.DoesNotExist:
-            # Return error response if article is not found
-            return Response({'error': 'Article not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Article not found."}, status=status.HTTP_404_NOT_FOUND)
         
-class LikeArticleView(APIView):
-    def post(self, request, pk, format=None):
-        try:
-            # Retrieve the article by primary key (pk)
-            article = Article.objects.get(pk=pk)
-            
-            # Check the action passed in the request (default is 'like')
-            action = request.data.get('action', 'like').lower()
-            
-            if action == 'like':
-                # Increment the like count
-                article.likes += 1
-                message = 'article liked'
-            elif action == 'dislike':
-                # Decrement the like count, but prevent it from going below 0
-                article.likes = max(0, article.likes - 1)
-                message = 'article disliked'
-            else:
-                # Invalid action
-                return Response({'error': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Save the updated like count
+        article_like, created = ArticleLike.objects.get_or_create(user=user, article=article)
+
+        if not created:
+            # If the like already exists, the user is "disliking" the article (remove the like)
+            article.likes -= 1
+            article.likes = max(0, article.likes)  # Ensure likes don't go below 0
             article.save()
-            
-            # Return success response with updated like count
-            return Response({'status': message, 'likes': article.likes}, status=status.HTTP_200_OK)
-        
-        except Article.DoesNotExist:
-            # Return error response if article is not found
-            return Response({'error': 'Article not found'}, status=status.HTTP_404_NOT_FOUND)
-        
 
-#crete,listing all and select single COMMENTS
+            # Remove the like entry from ArticleLike table
+            article_like.delete()
+            status_message = 'article disliked'
+        else:
+            # If no like exists, the user is "liking" the article
+            article.likes += 1
+            article.save()
+            status_message = 'article liked'
+
+        # Get the list of users who liked the article
+        users_who_liked = User.objects.filter(articlelike__article=article)
+        user_serializer = UserSerializer(users_who_liked, many=True)
+
+        return Response({
+            'status': status_message,
+            'likes': article.likes,
+            'users': user_serializer.data
+        }, status=status.HTTP_200_OK)
+    
 class CreateCommentAPIView(generics.CreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
