@@ -76,7 +76,7 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.email
 
-# Signal to automatically create and save profile when a user is created
+# Automatically create profile when user is created
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -85,3 +85,6 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
+
+# Add this to automatically create the profile if it doesn't exist
+User.profile = property(lambda u: Profile.objects.get_or_create(user=u)[0])
