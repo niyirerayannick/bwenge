@@ -76,15 +76,15 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.email
 
-# Automatically create profile when user is created
+# Signal to automatically create and save the profile
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
+def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
+        # Create profile if it's a new user
         Profile.objects.create(user=instance)
+    else:
+        # Save the profile if the user is being updated
+        instance.profile.save()
 
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
-
-# Add this to automatically create the profile if it doesn't exist
+# Add this to ensure accessing profile always works
 User.profile = property(lambda u: Profile.objects.get_or_create(user=u)[0])
