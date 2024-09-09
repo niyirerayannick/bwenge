@@ -23,8 +23,10 @@ from .models import (Article, ArticleLike, Comment,Category, Community, Communit
                      Assignment, Chapter, Choice, Course, Lecture, Question, Quiz, Submission,
                      Quiz, Question, Choice)
 from .serializers import (ArticleSerializer, CategorySerializer, CommentSerializer, CommunityCategorySerializer, 
-                          CommunitySerializer, CreateArticleLikeSerializer, EmailAssignmentSerializer, EnrollmentSerializer, InstitutionSerializer, JoinCommunitySerializer,
-                            PostSerializer, ReplySerializer, ProjectSerializer, TakeQuizSerializer, UploadExcelSerializer, UserSerializer,
+                          CommunitySerializer,EmailAssignmentSerializer, EnrollmentSerializer,
+                            InstitutionSerializer, JoinCommunitySerializer,
+                            PostSerializer, ReplySerializer, ProjectSerializer, TakeQuizSerializer, ToggleLikeSerializer, 
+                            UploadExcelSerializer, UserSerializer,
                           VideoSerializer,CourseSerializer,AssignmentSerializer, ChapterSerializer,
                             ChoiceSerializer, CourseSerializer,LectureSerializer, QuestionSerializer,
                               QuizSerializer, SubmissionSerializer,QuizSerializer, QuestionSerializer)
@@ -63,49 +65,50 @@ class SingleArticleAPIView(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.data)
 class ToggleLikeView(APIView):
     def post(self, request, format=None):
-        user_id = request.data.get('user_id')
-        article_id = request.data.get('article_id')
-
-        if not user_id or not article_id:
-            return Response({"error": "User ID and Article ID are required."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = ToggleLikeSerializer(data=request.data)
         
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return Response({"error": "User with this ID does not exist."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            article = Article.objects.get(id=article_id)
-        except Article.DoesNotExist:
-            return Response({"error": "Article not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        article_like, created = ArticleLike.objects.get_or_create(user=user, article=article)
+        if serializer.is_valid():
+            user_id = serializer.validated_data['user_id']
+            article_id = serializer.validated_data['article_id']
 
-        if not created:
-            # If the like already exists, the user is "disliking" the article (remove the like)
-            article.likes -= 1
-            article.likes = max(0, article.likes)  # Ensure likes don't go below 0
-            article.save()
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                return Response({"error": "User with this ID does not exist."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Remove the like entry from ArticleLike table
-            article_like.delete()
-            status_message = 'article disliked'
+            try:
+                article = Article.objects.get(id=article_id)
+            except Article.DoesNotExist:
+                return Response({"error": "Article not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            article_like, created = ArticleLike.objects.get_or_create(user=user, article=article)
+
+            if not created:
+                # If the like already exists, the user is "disliking" the article (remove the like)
+                article.likes -= 1
+                article.likes = max(0, article.likes)  # Ensure likes don't go below 0
+                article.save()
+
+                # Remove the like entry from ArticleLike table
+                article_like.delete()
+                status_message = 'article disliked'
+            else:
+                # If no like exists, the user is "liking" the article
+                article.likes += 1
+                article.save()
+                status_message = 'article liked'
+
+            # Get the list of users who liked the article
+            users_who_liked = User.objects.filter(articlelike__article=article)
+            user_serializer = UserSerializer(users_who_liked, many=True)
+
+            return Response({
+                'status': status_message,
+                'likes': article.likes,
+                'users': user_serializer.data
+            }, status=status.HTTP_200_OK)
         else:
-            # If no like exists, the user is "liking" the article
-            article.likes += 1
-            article.save()
-            status_message = 'article liked'
-
-        # Get the list of users who liked the article
-        users_who_liked = User.objects.filter(articlelike__article=article)
-        user_serializer = UserSerializer(users_who_liked, many=True)
-
-        return Response({
-            'status': status_message,
-            'likes': article.likes,
-            'users': user_serializer.data
-        }, status=status.HTTP_200_OK)
-    
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)   
 class CreateCommentAPIView(generics.CreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer

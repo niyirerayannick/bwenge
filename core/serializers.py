@@ -409,45 +409,6 @@ class EmailAssignmentSerializer(serializers.Serializer):
         allow_empty=False
     )
 
-class CreateArticleLikeSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(write_only=True)
-    article_id = serializers.IntegerField(write_only=True)
-
-    class Meta:
-        model = ArticleLike
-        fields = ['user_id', 'article_id']
-
-    def validate(self, data):
-        user_id = data.get('user_id')
-        article_id = data.get('article_id')
-
-        if not User.objects.filter(id=user_id).exists():
-            raise serializers.ValidationError({"error": "User with this ID does not exist."})
-
-        if not Article.objects.filter(id=article_id).exists():
-            raise serializers.ValidationError({"error": "Article with this ID does not exist."})
-
-        return data
-
-    def create(self, validated_data):
-        user_id = validated_data['user_id']
-        article_id = validated_data['article_id']
-
-        user = User.objects.get(id=user_id)
-        article = Article.objects.get(id=article_id)
-
-        # Toggle like
-        article_like, created = ArticleLike.objects.get_or_create(user=user, article=article)
-        
-        if not created:
-            # If the like already exists, remove it (dislike)
-            article_like.delete()
-            article.likes -= 1
-            article.likes = max(0, article.likes)  # Ensure likes don't go below 0
-            article.save()
-            return {'status': 'article disliked', 'likes': article.likes}
-
-        # If no like exists, create a new like (like the article)
-        article.likes += 1
-        article.save()
-        return {'status': 'article liked', 'likes': article.likes}
+class ToggleLikeSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    article_id = serializers.IntegerField()
