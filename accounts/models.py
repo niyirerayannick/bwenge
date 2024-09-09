@@ -1,12 +1,11 @@
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from core import models
 from django.db import models
+from django.contrib.auth import get_user_model
 from .managers import UserManager
 from django.contrib.auth.models import Permission
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
 
 class UserRolePermissions:
     @staticmethod
@@ -17,13 +16,9 @@ class UserRolePermissions:
         elif user.role == 'institution_admin':
             # Define permissions for institution admins here
             user.user_permissions.set(Permission.objects.all())
-            # user.user_permissions.add(Permission.objects.get(codename='add_student'))
-            # user.user_permissions.add(Permission.objects.get(codename='change_student'))
-            # user.user_permissions.add(Permission.objects.get(codename='delete_student'))
         elif user.role == 'system_admin':
             # Define permissions for system admins here
             user.user_permissions.set(Permission.objects.all())
-
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True, verbose_name="Email Address")
@@ -45,12 +40,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=50, choices=USER_ROLE_CHOICES, default='user')
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["telephone","first_name", "last_name"]
+    REQUIRED_FIELDS = ["telephone", "first_name", "last_name"]
 
     objects = UserManager()
     
     def __str__(self):
-        return self.first_name
+        return self.email
     
     @property
     def get_full_name(self): 
@@ -66,6 +61,7 @@ class OneTimePassword(models.Model):
     def __str__(self):
         return f"{self.user.first_name} - otp code"
 
+# Updated Profile model
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(blank=True)
@@ -80,11 +76,12 @@ class Profile(models.Model):
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
-        # Create profile if it's a new user
         Profile.objects.create(user=instance)
     else:
-        # Save the profile if the user is being updated
-        instance.profile.save()
+        if hasattr(instance, 'profile'):
+            instance.profile.save()
+        else:
+            Profile.objects.create(user=instance)
 
-# Add this to ensure accessing profile always works
+# Ensure profile access works as expected
 User.profile = property(lambda u: Profile.objects.get_or_create(user=u)[0])
