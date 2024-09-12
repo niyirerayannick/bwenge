@@ -257,3 +257,15 @@ class UserAnswer(models.Model):
 
     class Meta:
         unique_together = ('user', 'question')
+
+class Event(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    flyer = models.ImageField(upload_to='flyers/')
+    link = models.URLField()
+    event_time = models.DateTimeField()
+    approved = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.title

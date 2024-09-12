@@ -3,7 +3,7 @@ from django.contrib import admin
 from .models import (
     Category, Article, Video, Comment, CommunityCategory, Community, Post, Reply,
     Institution, Project, Course, Chapter, Lecture, Quiz, Question, Choice,
-    Assignment, Submission, Enrollment, PendingEnrollment, UserAnswer
+    Assignment, Submission, Enrollment, PendingEnrollment, UserAnswer,Event
 )
 
 @admin.register(Category)
@@ -126,3 +126,18 @@ class UserAnswerAdmin(admin.ModelAdmin):
 class CustomDashboardAdmin(admin.ModelAdmin):
     change_list_template = 'admin/custom_dashboard.html'  # You can customize this template for more complex dashboards
 
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    list_display = ('title', 'description', 'event_time', 'user', 'approved')
+    list_filter = ('event_time', 'approved')
+    search_fields = ('title', 'description')
+    readonly_fields = ('approved',)  # Make 'approved' field read-only
+
+    def has_change_permission(self, request, obj=None):
+        """
+        Limit edit permissions: non-admin users cannot change the approval status.
+        """
+        if obj and not request.user.is_staff:
+            if 'approved' in request.POST:
+                return False
+        return super().has_change_permission(request, obj)

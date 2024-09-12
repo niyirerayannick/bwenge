@@ -2,7 +2,7 @@ from rest_framework import serializers
 from accounts.models import User
 from rest_framework.exceptions import ValidationError
 from .models import (Article, ArticleLike, Comment, Category, Enrollment, Institution, UserAnswer, Video, Community, CommunityCategory, Post, Reply, 
-Assignment, Choice, Course, Chapter, Lecture, Question, Quiz, Submission, Project)
+Assignment, Choice, Course, Chapter, Lecture, Question, Quiz, Submission, Project,Event)
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -412,3 +412,40 @@ class EmailAssignmentSerializer(serializers.Serializer):
 class ToggleLikeSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
     article_id = serializers.IntegerField()
+
+class EventSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(write_only=True)  # Accept user_id in requests
+    approved = serializers.BooleanField(read_only=True)  # Show approval status (read-only)
+
+    class Meta:
+        model = Event
+        fields = [
+            'id', 'user_id', 'title', 'description', 'flyer', 'link', 'event_time', 'approved',
+        ]
+        read_only_fields = ('approved',)
+
+    def create(self, validated_data):
+        user_id = validated_data.pop('user_id', None)
+        
+        if user_id is None:
+            raise ValidationError('User ID must be provided.')
+        
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise ValidationError('Invalid User ID provided.')
+
+        # Create the event instance
+        event = Event.objects.create(user=user, **validated_data)
+        return event
+
+    def update(self, instance, validated_data):
+        # Update the event instance with provided data
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+        instance.flyer = validated_data.get('flyer', instance.flyer)
+        instance.link = validated_data.get('link', instance.link)
+        instance.event_time = validated_data.get('event_time', instance.event_time)
+        
+        instance.save()
+        return instance

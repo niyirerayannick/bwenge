@@ -1,5 +1,9 @@
 # views.py
 from turtle import pd
+from .models import Event
+from .serializers import EventSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 import openpyxl
@@ -23,7 +27,7 @@ from .models import (Article, ArticleLike, Comment,Category, Community, Communit
                      Assignment, Chapter, Choice, Course, Lecture, Question, Quiz, Submission,
                      Quiz, Question, Choice)
 from .serializers import (ArticleSerializer, CategorySerializer, CommentSerializer, CommunityCategorySerializer, 
-                          CommunitySerializer,EmailAssignmentSerializer, EnrollmentSerializer,
+                          CommunitySerializer,EmailAssignmentSerializer, EnrollmentSerializer, EventSerializer,
                             InstitutionSerializer, JoinCommunitySerializer,
                             PostSerializer, ReplySerializer, ProjectSerializer, TakeQuizSerializer, ToggleLikeSerializer, 
                             UploadExcelSerializer, UserSerializer,
@@ -698,3 +702,46 @@ class UploadExcelAPIView(APIView):
             return Response(response_data, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class EventCreateView(generics.CreateAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user_id=self.request.data.get('user_id'))
+
+class EventDetailView(generics.RetrieveUpdateAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        """Override to handle custom permissions."""
+        obj = super().get_object()
+        if not self.request.user.is_staff and obj.user != self.request.user:
+            raise PermissionDenied("You do not have permission to access this event.")
+        return obj
+
+    def perform_update(self, serializer):
+        """Override to prevent non-admin users from changing approval status."""
+        if not self.request.user.is_staff:
+            validated_data = serializer.validated_data
+            validated_data.pop('approved', None)  # Prevent non-admin users from changing 'approved' field
+        serializer.save()
+
+class EventListView(generics.ListAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Optionally restricts the returned events to those owned by the requesting user,
+        or all events if the user is an admin.
+        """
+        user = self.request.user
+        if user.is_staff:
+            return Event.objects.all()  # Admin can see all events
+        return Event.objects.filter(user=user)  # Non-admin users see only their events
