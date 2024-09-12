@@ -7,7 +7,7 @@ class UserAdmin(BaseUserAdmin):
     list_display = ('email', 'first_name', 'last_name', 'telephone', 'is_staff', 'is_superuser', 'is_active')
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'role')
     search_fields = ('email', 'first_name', 'last_name', 'telephone')
-    ordering = ('-date_joined',)
+    ordering = ('-date_joined',)  # You can still use it for ordering, just not in the fieldsets
     
     filter_horizontal = ()
     fieldsets = (
@@ -15,7 +15,7 @@ class UserAdmin(BaseUserAdmin):
         ('Personal info', {'fields': ('first_name', 'last_name', 'telephone')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'user_permissions')}),
         ('Role', {'fields': ('role',)}),
-        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+        ('Important dates', {'fields': ('last_login',)}),  # Removed 'date_joined'
     )
     add_fieldsets = (
         (None, {
