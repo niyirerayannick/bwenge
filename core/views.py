@@ -707,7 +707,6 @@ class UploadExcelAPIView(APIView):
 class EventCreateView(generics.CreateAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(user_id=self.request.data.get('user_id'))
@@ -715,7 +714,6 @@ class EventCreateView(generics.CreateAPIView):
 class EventDetailView(generics.RetrieveUpdateAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         """Override to handle custom permissions."""
@@ -734,7 +732,6 @@ class EventDetailView(generics.RetrieveUpdateAPIView):
 class EventListView(generics.ListAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         """
