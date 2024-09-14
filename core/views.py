@@ -1,7 +1,7 @@
 # views.py
 from turtle import pd
 from .models import Event
-from .serializers import EventSerializer
+from .serializers import EventCreateSerializer, EventSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from django.http import Http404
@@ -23,7 +23,8 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import generics,status
-from .models import (Article, ArticleLike, Comment,Category, Community, CommunityCategory, Enrollment, Institution, PendingEnrollment, Post, Reply,Video,Project,
+from .models import (Article, ArticleLike, Comment,Category, Community, CommunityCategory, Enrollment, 
+                     Institution,PendingEnrollment, Post, Reply,Video,Project,
                      Assignment, Chapter, Choice, Course, Lecture, Question, Quiz, Submission,
                      Quiz, Question, Choice)
 from .serializers import (ArticleSerializer, CategorySerializer, CommentSerializer, CommunityCategorySerializer, 
@@ -704,41 +705,23 @@ class UploadExcelAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
+class WaitingEventsView(generics.ListAPIView):
+    queryset = Event.objects.waiting()
+    serializer_class = EventSerializer # Optional: Restrict access to authenticated users
+
+class LiveEventsView(generics.ListAPIView):
+    queryset = Event.objects.live()
+    serializer_class = EventSerializer
+
 class EventCreateView(generics.CreateAPIView):
     queryset = Event.objects.all()
-    serializer_class = EventSerializer
+    serializer_class = EventCreateSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(user_id=self.request.data.get('user_id'))
+    def get_serializer_context(self):
+        # Add the request to the serializer context
+        return {'request': self.request}
 
-class EventDetailView(generics.RetrieveUpdateAPIView):
+class EventDetailView(generics.RetrieveAPIView):
     queryset = Event.objects.all()
-    serializer_class = EventSerializer
-
-    def get_object(self):
-        """Override to handle custom permissions."""
-        obj = super().get_object()
-        if not self.request.user.is_staff and obj.user != self.request.user:
-            raise PermissionDenied("You do not have permission to access this event.")
-        return obj
-
-    def perform_update(self, serializer):
-        """Override to prevent non-admin users from changing approval status."""
-        if not self.request.user.is_staff:
-            validated_data = serializer.validated_data
-            validated_data.pop('approved', None)  # Prevent non-admin users from changing 'approved' field
-        serializer.save()
-
-class EventListView(generics.ListAPIView):
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
-
-    def get_queryset(self):
-        """
-        Optionally restricts the returned events to those owned by the requesting user,
-        or all events if the user is an admin.
-        """
-        user = self.request.user
-        if user.is_staff:
-            return Event.objects.all()  # Admin can see all events
-        return Event.objects.filter(user=user)  # Non-admin users see only their events
+    serializer_class = EventSerializer  # Optional: To restrict access to authenticated users only
+    lookup_field = 'id' 

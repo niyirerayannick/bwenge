@@ -3,8 +3,8 @@
 from django.urls import path
 from . import views
 from .views import (ArticleCreateAPIView, ArticleListAPIView, AssignUsersToSPOCAPIView, CommunityStarView,
-                     CourseEnrollAPIView, CreateVideoAPIView, EventCreateView, EventDetailView, EventListView, InstitutionDetail, InstitutionList, 
-                     JoinCommunityView,  MyArticlesView, MyCoursesView, MyProjectsView, 
+                     CourseEnrollAPIView, CreateVideoAPIView, EventCreateView, EventDetailView, InstitutionDetail, InstitutionList, 
+                     JoinCommunityView, LiveEventsView,  MyArticlesView, MyCoursesView, MyProjectsView, 
                      MyStatisticsView, ProjectDetailView, ProjectListView,
           SingleArticleAPIView, CategoryCreateAPIView, SingleCategoryAPIView, 
           CreateCommentAPIView,
@@ -16,7 +16,7 @@ from .views import (ArticleCreateAPIView, ArticleListAPIView, AssignUsersToSPOCA
           LectureDetailAPIView, LectureListAPIView,
           QuestionCreateAPIView, QuestionDetailAPIView, QuestionListAPIView,QuizCreateAPIView, 
           QuizDetailAPIView, QuizListAPIView, SubmissionCreateAPIView, SubmissionDetailAPIView, 
-          SubmissionListAPIView, mycommunuties, ProjectCreateView)
+          SubmissionListAPIView, WaitingEventsView, mycommunuties, ProjectCreateView)
 
 urlpatterns = [
 ########################################-ARTICLE URLS-######################################################
@@ -105,10 +105,12 @@ urlpatterns = [
 
 ##Nsangiza
     path('nsangiza/event/create/', EventCreateView.as_view(), name='event-create'),
-    path('nsangiza/event/list', EventListView.as_view(), name='event-list'),
+    path('nsangiza/events/waiting/', WaitingEventsView.as_view(), name='waiting-events'),
+    path('nsangiza/events/live/', LiveEventsView.as_view(), name='live-events'),
     path('nsangiza/event/<int:pk>/', EventDetailView.as_view(), name='event-detail'),
     path('nsangiza/video/create', CreateVideoAPIView.as_view(), name='video-list-create'),
     path('nsangiza/video/list', VideoListAPIView.as_view(), name='video-list'),
     path('nsangiza/video/<int:pk>/', SingleVideoAPIView.as_view(), name='video-detail'),
+    
 
 ]

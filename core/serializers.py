@@ -414,38 +414,26 @@ class ToggleLikeSerializer(serializers.Serializer):
     article_id = serializers.IntegerField()
 
 class EventSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(write_only=True)  # Accept user_id in requests
-    approved = serializers.BooleanField(read_only=True)  # Show approval status (read-only)
+    class Meta:
+        model = Event
+        fields = ['id', 'user', 'title', 'description', 'flyer', 'link', 'event_time', 'approved']
+
+class EventCreateSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(write_only=True)  # Accept user_id only in the request
 
     class Meta:
         model = Event
-        fields = [
-            'id', 'user_id', 'title', 'description', 'flyer', 'link', 'event_time', 'approved',
-        ]
-        read_only_fields = ('approved',)
+        fields = ['title', 'description', 'flyer', 'link', 'event_time', 'user_id']
 
-    def create(self, validated_data):
-        user_id = validated_data.pop('user_id', None)
-        
-        if user_id is None:
-            raise ValidationError('User ID must be provided.')
-        
+    def validate_user_id(self, user_id):
+        # Validate that the user exists
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
-            raise ValidationError('Invalid User ID provided.')
+            raise serializers.ValidationError("User with this ID does not exist.")
+        return user
 
-        # Create the event instance
+    def create(self, validated_data):
+        user = validated_data.pop('user_id')  # We now have the validated User instance here
         event = Event.objects.create(user=user, **validated_data)
         return event
-
-    def update(self, instance, validated_data):
-        # Update the event instance with provided data
-        instance.title = validated_data.get('title', instance.title)
-        instance.description = validated_data.get('description', instance.description)
-        instance.flyer = validated_data.get('flyer', instance.flyer)
-        instance.link = validated_data.get('link', instance.link)
-        instance.event_time = validated_data.get('event_time', instance.event_time)
-        
-        instance.save()
-        return instance

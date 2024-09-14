@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.db import models
 from django.forms import ValidationError
-
+from django.utils import timezone
 
 class Category(models.Model):
     name = models.CharField(max_length=50)
@@ -258,6 +258,14 @@ class UserAnswer(models.Model):
     class Meta:
         unique_together = ('user', 'question')
 
+class EventManager(models.Manager):
+    def waiting(self):
+        return self.filter(event_time__gt=timezone.now(), approved=True)
+
+    def live(self):
+        now = timezone.now()
+        return self.filter(event_time__lte=now, event_time__gte=now - timezone.timedelta(hours=1), approved=True)
+
 class Event(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
@@ -266,6 +274,8 @@ class Event(models.Model):
     link = models.URLField()
     event_time = models.DateTimeField()
     approved = models.BooleanField(default=True)
+
+    objects = EventManager()
 
     def __str__(self):
         return self.title
