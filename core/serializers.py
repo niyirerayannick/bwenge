@@ -38,18 +38,23 @@ class CategorySerializer(serializers.ModelSerializer):
 class ArticleSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     categories = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), many=True, required=True)
-    comments = CommentSerializer(source='article_comments', many=True, read_only=True)  # Updated field name
+    comments = CommentSerializer(source='article_comments', many=True, read_only=True)
+    user_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Article
-        fields = ['id', 'title', 'poster_image', 'description', 'categories', 'likes', 'views', 'author', 'date', 'comments']
+        fields = ['id', 'title', 'poster_image', 'description', 'categories', 'likes', 'views', 'author', 'date', 'comments', 'user_id']
 
     def create(self, validated_data):
-        request = self.context.get('request')
-        categories_data = validated_data.pop('categories', [])
-        
-        # Ensure that the author is set to the current user
-        article = Article.objects.create(author=request.user, **validated_data)
+        user_id = validated_data.pop('user_id')
+        categories_data = validated_data.pop('categories')
+
+        try:
+            author = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"user_id": "User with this ID does not exist."})
+
+        article = Article.objects.create(author=author, **validated_data)
         article.categories.set(categories_data)
         return article
 

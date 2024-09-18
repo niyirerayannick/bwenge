@@ -52,6 +52,10 @@ class ArticleCreateAPIView(generics.ListCreateAPIView):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
 
+    def create(self, request, *args, **kwargs):
+        # Allow user ID to be passed in the request and validate in the serializer
+        return super().create(request, *args, **kwargs)
+
 class ArticleListAPIView(generics.ListAPIView):
     serializer_class = ArticleSerializer
     def get_queryset(self):
