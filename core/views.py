@@ -709,13 +709,21 @@ class UploadExcelAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
+from rest_framework.permissions import IsAuthenticated
+
 class WaitingEventsView(generics.ListAPIView):
-    queryset = Event.objects.waiting()
-    serializer_class = EventSerializer # Optional: Restrict access to authenticated users
+    serializer_class = EventSerializer
+
+    def get_queryset(self):
+        return Event.objects.waiting()  # Fetch waiting events dynamically
+
 
 class LiveEventsView(generics.ListAPIView):
-    queryset = Event.objects.live()
     serializer_class = EventSerializer
+
+    def get_queryset(self):
+        return Event.objects.live()  # Fetch live events dynamically
+
 
 class EventCreateView(generics.CreateAPIView):
     queryset = Event.objects.all()
