@@ -5,18 +5,15 @@ from . import views
 from .views import (ArticleCreateAPIView, ArticleListAPIView, AssignUsersToSPOCAPIView, CommunityStarView,
                      CourseEnrollAPIView, CreateVideoAPIView, EventCreateView, EventDetailView, InstitutionDetail, InstitutionList, 
                      JoinCommunityView, LiveEventsView,  MyArticlesView, MyCoursesView, MyProjectsView, 
-                     MyStatisticsView, ProjectDetailView, ProjectListView,
-          SingleArticleAPIView, CategoryCreateAPIView, SingleCategoryAPIView, 
-          CreateCommentAPIView,
-          SingleCommentAPIView, SingleVideoAPIView, TakeQuizAPIView, ToggleLikeView, UploadExcelAPIView,
-           VideoListAPIView,AssignmentCreateAPIView, 
+                     MyStatisticsView, ProjectDetailView, ProjectListView,SingleArticleAPIView, CategoryCreateAPIView,
+                     SingleCategoryAPIView,  CreateCommentAPIView,SingleCommentAPIView, SingleVideoAPIView, TakeQuizAPIView,
+                       ToggleLikeView, UploadExcelAPIView, VideoListAPIView,AssignmentCreateAPIView, 
           AssignmentDetailAPIView, AssignmentListAPIView, ChapterCreateAPIView, ChapterDetailAPIView, 
           ChapterListAPIView, ChoiceCreateAPIView,ChoiceDetailAPIView, ChoiceListAPIView,
           CourseCreateAPIView, CourseListAPIView, CourseDetailAPIView, LectureCreateAPIView,
-          LectureDetailAPIView, LectureListAPIView,
-          QuestionCreateAPIView, QuestionDetailAPIView, QuestionListAPIView,QuizCreateAPIView, 
-          QuizDetailAPIView, QuizListAPIView, SubmissionCreateAPIView, SubmissionDetailAPIView, 
-          SubmissionListAPIView, WaitingEventsView, mycommunuties, ProjectCreateView)
+          LectureDetailAPIView, LectureListAPIView, QuestionCreateAPIView, QuestionDetailAPIView, 
+          QuestionListAPIView,QuizCreateAPIView,  QuizDetailAPIView, QuizListAPIView, SubmissionCreateAPIView,
+          SubmissionDetailAPIView, SubmissionListAPIView, WaitingEventsView, mycommunuties, ProjectCreateView)
 
 urlpatterns = [
 ########################################-ARTICLE URLS-######################################################
@@ -95,15 +92,14 @@ urlpatterns = [
     path('submissions/', SubmissionListAPIView.as_view(), name='submission-list'),
     path('submissions/create/', SubmissionCreateAPIView.as_view(), name='submission-create'),
     path('submissions/<int:pk>/', SubmissionDetailAPIView.as_view(), name='submission-detail'),
-
+    #projects
     path('projects/', ProjectListView.as_view(), name='project-list'),
     path('projects/<int:pk>/', ProjectDetailView.as_view(), name='project-detail'),
     path('projects/create/', ProjectCreateView.as_view(), name='project-create'),
-    
+    #institutions
     path('institutions/', InstitutionList.as_view(), name='institution-list'),
     path('institutions/<int:pk>/', InstitutionDetail.as_view(), name='institution-detail'),
-
-##Nsangiza
+    #Nsangiza
     path('nsangiza/event/create/', EventCreateView.as_view(), name='event-create'),
     path('nsangiza/events/waiting/', WaitingEventsView.as_view(), name='waiting-events'),
     path('nsangiza/events/live/', LiveEventsView.as_view(), name='live-events'),
@@ -111,6 +107,4 @@ urlpatterns = [
     path('nsangiza/video/create', CreateVideoAPIView.as_view(), name='video-list-create'),
     path('nsangiza/video/list', VideoListAPIView.as_view(), name='video-list'),
     path('nsangiza/video/<int:pk>/', SingleVideoAPIView.as_view(), name='video-detail'),
-    
-
 ]
