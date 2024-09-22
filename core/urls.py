@@ -63,7 +63,7 @@ urlpatterns = [
     path('courses/<int:course_id>/take/', CourseEnrollAPIView.as_view(), name='course-enroll'),
     path('courses/<int:course_id>/assign/', AssignUsersToSPOCAPIView.as_view(), name='assign-users-to-spoc'),
     path('courses/<int:course_id>/upload_excel/', UploadExcelAPIView.as_view(), name='upload-excel'),
-    ##Chapeter
+    ##Chapeter   fer xzyvg frc
     path('chapters/', ChapterListAPIView.as_view(), name='chapter-list'),
     path('course/<int:course_id>/chapters/create/', ChapterCreateAPIView.as_view(), name='chapter-create'),
     path('chapters/<int:pk>/', ChapterDetailAPIView.as_view(), name='chapter-detail'),
