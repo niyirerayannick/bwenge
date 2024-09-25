@@ -5,7 +5,7 @@ from . import views
 from .views import (ArticleCreateAPIView, ArticleListAPIView, AssignUsersToSPOCAPIView, CommunityStarView,
                      CourseEnrollAPIView, CreateVideoAPIView, EventCreateView, EventDetailView, InstitutionDetail, InstitutionList, 
                      JoinCommunityView, LiveEventsView,  MyArticlesView, MyCoursesView, MyProjectsView, 
-                     MyStatisticsView, ProjectDetailView, ProjectListView,SingleArticleAPIView, CategoryCreateAPIView,
+                     MyStatisticsView, ProjectDeleteView, ProjectDetailView, ProjectDownloadView, ProjectListView, ProjectUpdateView,SingleArticleAPIView, CategoryCreateAPIView,
                      SingleCategoryAPIView,  CreateCommentAPIView,SingleCommentAPIView, SingleVideoAPIView, TakeQuizAPIView,
                        ToggleLikeView, UploadExcelAPIView, VideoListAPIView,AssignmentCreateAPIView, 
           AssignmentDetailAPIView, AssignmentListAPIView, ChapterCreateAPIView, ChapterDetailAPIView, 
@@ -37,6 +37,9 @@ urlpatterns = [
     path('communities/', views.CommunityList.as_view(), name='community-list'),
     path('communities/create/', views.CommunityCreate.as_view(), name='community-create'),
     path('communities/<int:pk>/', views.CommunityDetail.as_view(), name='community-detail'),
+    path('communities/<int:pk>/edit/', views.CommunityUpdate.as_view(), name='community-update'),  # Edit community
+    path('communities/<int:pk>/delete/', views.CommunityDelete.as_view(), name='community-delete'),  # Delete community
+
     path('communities/categories', views.Commu_categoryCreateAPIView.as_view(), name='community-categories-list'),
     path('communities/<int:community_id>/join/', JoinCommunityView.as_view(), name='community-join'),
     path('communities/<int:community_id>/stars/', CommunityStarView.as_view(), name='community_star'),
@@ -96,6 +99,11 @@ urlpatterns = [
     path('projects/', ProjectListView.as_view(), name='project-list'),
     path('projects/<int:pk>/', ProjectDetailView.as_view(), name='project-detail'),
     path('projects/create/', ProjectCreateView.as_view(), name='project-create'),
+    path('projects/<int:pk>/edit/', ProjectUpdateView.as_view(), name='project-update'),
+    path('projects/<int:pk>/delete/', ProjectDeleteView.as_view(), name='project-delete'),
+    path('projects/<int:pk>/download/', ProjectDownloadView.as_view(), name='project-download'),
+
+
     #institutions
     path('institutions/', InstitutionList.as_view(), name='institution-list'),
     path('institutions/<int:pk>/', InstitutionDetail.as_view(), name='institution-detail'),

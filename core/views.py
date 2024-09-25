@@ -4,7 +4,7 @@ from .models import Event
 from .serializers import EventCreateSerializer, EventSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
-from django.http import Http404
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
 import openpyxl
 from rest_framework import status
@@ -72,6 +72,8 @@ class SingleArticleAPIView(generics.RetrieveUpdateDestroyAPIView):
         instance.save()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+    
+    
 class ToggleLikeView(APIView):
     def post(self, request, format=None):
         serializer = ToggleLikeSerializer(data=request.data)
@@ -178,6 +180,15 @@ class CommunityCreate(generics.CreateAPIView):
     serializer_class = CommunitySerializer
 
 class CommunityDetail(generics.RetrieveAPIView):
+    queryset = Community.objects.all()
+    serializer_class = CommunitySerializer
+
+class CommunityUpdate(generics.UpdateAPIView):
+    queryset = Community.objects.all()
+    serializer_class = CommunitySerializer
+
+# Delete a community
+class CommunityDelete(generics.DestroyAPIView):
     queryset = Community.objects.all()
     serializer_class = CommunitySerializer
 
@@ -573,7 +584,38 @@ class ProjectCreateView(generics.CreateAPIView):
     # def perform_create(self, serializer):
     #     # Automatically set the author to the logged in user during project creation
     #     serializer.save(author=self.request.user)
+class ProjectUpdateView(generics.UpdateAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
 
+# Delete view to delete a project
+class ProjectDeleteView(generics.DestroyAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+
+class ProjectDownloadView(APIView):
+    def get(self, request, pk):
+        try:
+            project = Project.objects.get(pk=pk)
+        except Project.DoesNotExist:
+            raise Http404("Project not found.")
+        
+        # Increment total_downloads
+        project.total_downloads += 1
+        project.save()
+        
+        # Serve the file
+        file_path = project.file.path  # Assuming 'file' is a FileField in Project model
+        
+        try:
+            response = FileResponse(open(file_path, 'rb'), content_type='application/octet-stream')
+            response['Content-Disposition'] = f'attachment; filename="{project.file.name}"'
+            return response
+        except FileNotFoundError:
+            raise Http404("File not found.")
+        
+        
 class CourseEnrollAPIView(generics.CreateAPIView):
     queryset = Enrollment.objects.all()
     serializer_class = EnrollmentSerializer
