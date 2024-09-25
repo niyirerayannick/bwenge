@@ -171,6 +171,7 @@ class JoinCommunitySerializer(serializers.Serializer):
     
 class VideoSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
+    author = UserSerializer(read_only=True)
     
     class Meta:
         model = Video
