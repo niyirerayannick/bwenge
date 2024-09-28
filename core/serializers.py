@@ -86,9 +86,8 @@ class InstitutionSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(write_only=True)  # Accept user_id in requests
     author = UserSerializer(read_only=True)  # Assuming author is a ForeignKey
-    institution = serializers.PrimaryKeyRelatedField(
-        queryset=Institution.objects.all()
-    )  # Allow users to select an institution
+    institution = serializers.PrimaryKeyRelatedField(queryset=Institution.objects.all())  # Allow users to select an institution
+    file = serializers.FileField()
 
     class Meta:
         model = Project
@@ -98,22 +97,41 @@ class ProjectSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ('total_downloads', 'views', 'submitted_date')  # Make certain fields read-only
 
+    def validate_file(self, value):
+        # Ensure the file has a .pdf extension
+        if not value.name.endswith('.pdf'):
+            raise serializers.ValidationError('Only PDF files are allowed.')
+        
+        # Optionally, check the MIME type as well (if required)
+        if value.content_type != 'application/pdf':
+            raise serializers.ValidationError('The file must be a PDF.')
+
+        return value
+
     def create(self, validated_data):
         user_id = validated_data.pop('user_id', None)
         
         if user_id is None:
-            raise ValidationError('User ID must be provided.')
+            raise serializers.ValidationError({'user_id': 'User ID must be provided.'})
         
         try:
             author = User.objects.get(id=user_id)
         except User.DoesNotExist:
-            raise ValidationError('Invalid User ID provided.')
+            raise serializers.ValidationError({'user_id': 'Invalid User ID provided.'})
 
-        institution = validated_data.pop('institution', None)
-        project = Project.objects.create(author=author, institution=institution, **validated_data)
+        project = Project.objects.create(author=author, **validated_data)
         return project
 
     def update(self, instance, validated_data):
+        user_id = validated_data.pop('user_id', None)
+        
+        if user_id is not None:
+            try:
+                author = User.objects.get(id=user_id)
+                instance.author = author
+            except User.DoesNotExist:
+                raise serializers.ValidationError({'user_id': 'Invalid User ID provided.'})
+        
         return super().update(instance, validated_data)
 
 class CommunitySerializer(serializers.ModelSerializer):

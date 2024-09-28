@@ -73,7 +73,7 @@ class SingleArticleAPIView(generics.RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
     
-    
+
 class ToggleLikeView(APIView):
     def post(self, request, format=None):
         serializer = ToggleLikeSerializer(data=request.data)
@@ -569,12 +569,10 @@ class InstitutionDetail(APIView):
 class ProjectListView(generics.ListAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
 class ProjectDetailView(generics.RetrieveAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
 class ProjectCreateView(generics.CreateAPIView):
     queryset = Project.objects.all()
