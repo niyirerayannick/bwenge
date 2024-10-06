@@ -134,6 +134,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         
         return super().update(instance, validated_data)
 
+
 class CommunitySerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(
         queryset=CommunityCategory.objects.all(), many=True
@@ -193,7 +194,7 @@ class VideoSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Video
-        fields = ['id', 'title', 'poster_image', 'video_file', 'description', 'likes', 'categories', 'views', 'author', 'date', 'comments']
+        fields = ['id', 'title', 'poster_image', 'youtube_link', 'description', 'likes', 'categories', 'views', 'author', 'date', 'comments']
 
     def create(self, validated_data):
         categories_data = validated_data.pop('categories', [])

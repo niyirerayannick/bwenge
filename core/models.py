@@ -33,16 +33,18 @@ class ArticleLike(models.Model):
         unique_together = ('user', 'article')
 
 class Video(models.Model):
-    VIDEO_FORMATS = ['mp4', 'avi', 'mov', 'mkv', 'wmv', 'flv', 'webm']  # Add more video formats as needed
+    # VIDEO_FORMATS = ['mp4', 'avi', 'mov', 'mkv', 'wmv', 'flv', 'webm']  # Add more video formats as needed
 
-    def validate_video_file_extension(value):
-        if not value.name.split('.')[-1] in Video.VIDEO_FORMATS:
-            raise ValidationError(f'Unsupported file format. Please upload a file with one of the following extensions: {", ".join(Video.VIDEO_FORMATS)}')
+    # def validate_video_file_extension(value):
+    #     if not value.name.split('.')[-1] in Video.VIDEO_FORMATS:
+    #         raise ValidationError(f'Unsupported file format. Please upload a file with one of the following extensions: {", ".join(Video.VIDEO_FORMATS)}')
 
-    video_file = models.FileField(upload_to='media/videos/', validators=[validate_video_file_extension])
+    # video_file = models.FileField(upload_to='media/videos/', validators=[validate_video_file_extension])
+    # 
     title = models.CharField(max_length=100)
     description = models.TextField()
     poster_image = models.ImageField(upload_to='media/video/posters/')
+    youtube_link = models.URLField()
     categories = models.ManyToManyField(Category)
     likes = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
