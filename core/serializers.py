@@ -191,15 +191,34 @@ class JoinCommunitySerializer(serializers.Serializer):
 class VideoSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
-    
+    user_id = serializers.IntegerField(write_only=True)  # Add user_id as a write-only field
+
     class Meta:
         model = Video
-        fields = ['id', 'title', 'poster_image', 'youtube_link', 'description', 'likes', 'categories', 'views', 'author', 'date', 'comments']
+        fields = ['id', 'title', 'poster_image', 'youtube_link', 'description', 'likes', 'categories', 'views', 'author', 'date', 'comments', 'user_id']
 
     def create(self, validated_data):
+        # Extract user_id from validated_data
+        user_id = validated_data.pop('user_id', None)
+
+        # Check if user_id corresponds to an existing User
+        if user_id:
+            try:
+                # Get the User instance
+                author = User.objects.get(id=user_id)
+                validated_data['author'] = author  # Set the author for the Video
+            except User.DoesNotExist:
+                raise serializers.ValidationError("User ID does not exist.")
+
+        # Get the categories data
         categories_data = validated_data.pop('categories', [])
+        
+        # Create the video instance
         video = Video.objects.create(**validated_data)
+
+        # Set the categories for the video
         video.categories.set(categories_data)
+
         return video
 
 class PostSerializer(serializers.ModelSerializer):

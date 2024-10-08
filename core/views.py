@@ -156,6 +156,9 @@ class CommunityStarView(APIView):
 class CreateVideoAPIView(generics.ListCreateAPIView):
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
+    def perform_create(self, serializer):
+        # You can pass the validated data to the serializer here if needed
+        serializer.save() 
 
 class VideoListAPIView(generics.ListAPIView):
     queryset = Video.objects.all()

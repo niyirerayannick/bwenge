@@ -26,7 +26,7 @@ from dashpanel.views import custom_dashboard
 schema_view = get_schema_view(
     openapi.Info(
         title="Bwenge API Documentation",
-        default_version='v1',
+        default_version='v2',
         description="API Documentation using Swagger",
         terms_of_service="https://www.bwenge.com/terms/",
         contact=openapi.Contact(email="contact@bwenge.com"),
