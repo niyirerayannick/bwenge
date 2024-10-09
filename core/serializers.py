@@ -458,6 +458,7 @@ class ToggleLikeSerializer(serializers.Serializer):
     article_id = serializers.IntegerField()
 
 class EventSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)  # Keep it read-only to return author details
     class Meta:
         model = Event
         fields = ['id', 'user', 'title', 'description', 'flyer', 'link', 'event_time', 'approved']

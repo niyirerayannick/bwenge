@@ -758,14 +758,13 @@ class WaitingEventsView(generics.ListAPIView):
     serializer_class = EventSerializer
 
     def get_queryset(self):
-        return Event.objects.waiting()  # Fetch waiting events dynamically
-
+        return Event.objects.waiting()  # Fetch waiting events
 
 class LiveEventsView(generics.ListAPIView):
     serializer_class = EventSerializer
 
     def get_queryset(self):
-        return Event.objects.live()  # Fetch live events dynamically
+        return Event.objects.live()  # Fetch live events
 
 
 class EventCreateView(generics.CreateAPIView):
