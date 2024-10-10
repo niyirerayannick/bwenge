@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db import models
 from django.forms import ValidationError
 from django.utils import timezone
+import pytz
 
 class Category(models.Model):
     name = models.CharField(max_length=50)
@@ -260,14 +261,30 @@ class UserAnswer(models.Model):
     class Meta:
         unique_together = ('user', 'question')
 
+# class EventManager(models.Manager):
+#     def waiting(self):
+#         return self.filter(event_time__gt=timezone.now(), approved=True)
+
+#     def live(self):
+#         now = timezone.now()
+#         return self.filter(event_time__lte=now, event_time__gte=now - timezone.timedelta(hours=1), approved=True)
 class EventManager(models.Manager):
-    def waiting(self):
-        return self.filter(event_time__gt=timezone.now(), approved=True)
-
-    def live(self):
+    def waiting(self, user_timezone=None):
         now = timezone.now()
-        return self.filter(event_time__lte=now, event_time__gte=now - timezone.timedelta(hours=1), approved=True)
+        if user_timezone:
+            now = now.astimezone(pytz.timezone(user_timezone))
+        return self.filter(event_time__gt=now, approved=True)
 
+    def live(self, user_timezone=None):
+        now = timezone.now()
+        if user_timezone:
+            now = now.astimezone(pytz.timezone(user_timezone))
+        return self.filter(
+            event_time__lte=now,
+            event_time__gte=now - timezone.timedelta(hours=1),
+            approved=True
+        )
+    
 class Event(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
@@ -281,3 +298,15 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+    
+    def save(self, *args, **kwargs):
+        # Ensure event_time is timezone-aware
+        if self.event_time and timezone.is_naive(self.event_time):
+            self.event_time = timezone.make_aware(self.event_time, timezone.get_current_timezone())
+        super().save(*args, **kwargs)
+
+    def get_event_time_in_timezone(self, user_timezone):
+        # Convert event_time to user's timezone for display purposes
+        if user_timezone:
+            return self.event_time.astimezone(pytz.timezone(user_timezone))
+        return self.event_time  # Return in UTC if no timezone is provided

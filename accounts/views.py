@@ -198,7 +198,6 @@ class ProfileDetail(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         user_id = self.kwargs.get('user_id')
-
         if not user_id:
             return Response({"error": "User ID not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -207,10 +206,8 @@ class ProfileDetail(generics.GenericAPIView):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Retrieve the profile associated with the user
         profile = get_object_or_404(Profile, user=user)
         serializer = self.get_serializer(profile)
-
         return Response(serializer.data)
 
     def put(self, request, *args, **kwargs):
@@ -226,9 +223,8 @@ class ProfileDetail(generics.GenericAPIView):
 
         profile = get_object_or_404(Profile, user=user)
 
-        # Ensure the request includes both data and files (for image uploads)
+        # Ensure files are processed correctly
         serializer = self.get_serializer(profile, data=request.data, files=request.FILES, partial=True)
-        
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
