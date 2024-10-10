@@ -199,7 +199,8 @@ EMAIL_HOST_PASSWORD = 'uvmy fodq jycu inhn'
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'bwengeorg@gmail.com'
 
-
+TIME_ZONE = 'Africa/Kigali' # Set your default timezone
+USE_TZ = True  # Ensure timezone support is enabled
 
 JAZZMIN_SETTINGS = {
     "site_title": "BWENGE ADMIN",
@@ -208,5 +209,4 @@ JAZZMIN_SETTINGS = {
     "site_logo": "/image/logo1.png",
     "login_logo": None,
     "copyright": "BWENGE R.L Ltd",
-
     }
