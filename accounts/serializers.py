@@ -207,9 +207,21 @@ class LogoutUserSerializer(serializers.Serializer):
             return self.fail('bad_token')
         
 class ProfileSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.ImageField(allow_null=True, required=False)
+
     class Meta:
         model = Profile
-        fields = '__all__'
+        fields = ['bio', 'location', 'birth_date', 'profile_picture']
+
+    def validate_profile_picture(self, value):
+        """
+        Optionally validate the profile picture. 
+        Here, you can add custom validation if necessary (e.g., file size or file type).
+        """
+        if value:
+            if value.size > 5 * 1024 * 1024:  # 5 MB max size
+                raise serializers.ValidationError("Profile picture is too large. Maximum size allowed is 5MB.")
+        return value
 
 
 class GoogleSignInSerializer(serializers.Serializer):

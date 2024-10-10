@@ -193,7 +193,6 @@ class SetNewPasswordView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         return Response({'success':True, 'message':"password reset is succesful"}, status=status.HTTP_200_OK)
 
-
 class ProfileDetail(generics.GenericAPIView):
     serializer_class = ProfileSerializer
 
@@ -226,12 +225,14 @@ class ProfileDetail(generics.GenericAPIView):
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         profile = get_object_or_404(Profile, user=user)
-        serializer = self.get_serializer(profile, data=request.data, partial=True)
+
+        # Ensure the request includes both data and files (for image uploads)
+        serializer = self.get_serializer(profile, data=request.data, files=request.FILES, partial=True)
+        
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
         return Response(serializer.data)
-
 
 
 class LogoutApiView(GenericAPIView):
