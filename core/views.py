@@ -644,6 +644,7 @@ class CourseEnrollAPIView(generics.CreateAPIView):
         enrollment = Enrollment.objects.create(user=user, course=course)
         serializer = self.get_serializer(enrollment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
 class EnrollmentListAPIView(generics.ListAPIView):
     serializer_class = EnrollmentSerializer
     permission_classes = [permissions.AllowAny]  # Allow any user, authenticated or not
